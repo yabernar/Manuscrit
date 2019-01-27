@@ -1,0 +1,34 @@
+\documentclass[12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{helvet}
+\usepackage[frenchb]{babel}
+\usepackage[letterpaper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm,marginparwidth=1.75cm]{geometry}
+
+\title{\vspace{-2cm}Rapport continu de Thèse}
+\author{Yann Bernard}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\chapter{Contexte général}
+
+\chapter{Modèles de suivi de cibles}
+
+\section{Modèle Neural}
+
+Nous avons défini plusieurs contraintes pour notre modèle de suivi de cible. La plus importante étant que notre modèle neural devra fonctionner sans avoir d'à priori sur l'objet à suivre (sa forme, sa couleur, son comportement). Cette contrainte à amené au développement d'un modèle qui détecte le niveau de nouveauté des différents éléments d'une scène visuelle. Il fonctionne de la façon suivante : 
+\begin{enumerate}
+    \item Prendre une image de l'environnement qui servira de référence pour ce qui sera considéré comme le monde connu.
+    \item Apprendre cette image par une SOM.
+    \item Pour chaque nouvelle image capturée par notre caméra, la reconstituer à partir 
+\end{enumerate}
+
+
+
+
+
+\end{document}
