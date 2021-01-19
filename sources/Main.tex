@@ -1,0 +1,100 @@
+%% Copyright (C) 2014 Dorian Depriester
+%% http://blog.dorian-depriester.fr
+%%
+%% This file may be distributed and/or modified under the conditions
+%% of the LaTeX Project Public License, either version 1.3c of this
+%% license or (at your option) any later version. The latest version
+%% of this license is in:
+%%
+%%    http://www.latex-project.org/lppl.txt
+%%
+%% and version 1.3c or later is part of all distributions of LaTeX
+%% version 2006/05/20 or later.
+%%
+%% This work has the LPPL maintenance status `maintained'.
+%%
+%% The Current Maintainer of this work is Dorian Depriester
+%% <contact [at] dorian [-] depriester [dot] fr>.
+%%
+%% This is main.tex for French PhD Thesis.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%           Fichier maitre				%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[a4paper, 11pt, twoside,openright]{report}
+\input{Preambule}		% Liste des packages et de leurs options
+\input{CommandesPerso}	% Commandes et environnements perso
+\input{PageDeGarde}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   			Liste des fichiers à compiler					%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%	\includeonly{Chapitre1,Chapitre2,Annexes}
+
+
+
+% Infos de la page de garde
+\author{Yann \scshape{Bernard}}
+\title{Calcul neuromorphique pour l'exploration et la catégorisation robuste d'environnement visuel et multimodal dans les systèmes embarqués.}
+\specialite{Informatique}
+\directeur{Bernard \scshape{Girau}}
+\encadranta{Nicolas \scshape{Hueber}}
+\encadrantb{Pierre \scshape{Raymond}}
+\date{2021}
+\jurya{M. Alan Turing}{Professeur}{Examinateur}
+\juryb{Mme. Margaret Hamilton}{Professeur}{Rapporteur}
+\juryc{M. Emil L. Post}{Professeur}{Examinateur}
+\juryd{M. Ken Thompson}{Professeur}{Examinateur}
+\ecole{l'Université de Lorraine}
+
+% Méta-données du PDF
+\hypersetup{
+    pdfauthor={Yann Bernard},
+    pdfsubject={Manuscrit de thèse de doctorat},
+    pdftitle={Calcul neuromorphique pour l'exploration et la catégorisation robuste d'environnement visuel et multimodal dans les systèmes embarqués},
+    pdfkeywords={Neuromorphique, déformation plastique, titane, TA6V}
+}
+
+
+
+\begin{document}
+% Préambule
+	\pagenumbering{roman}
+	\pagedegarde
+
+	\cleardoublepage
+		% Table des matières
+			\setcounter{tocdepth}{1}	% Pas besoin de trop détailler le sommaire ici (chapitres/sections)
+			\dominitoc						% Génération des mini-toc	\pagenumbering{arabic}
+			\tableofcontents
+		% Liste des figures
+			\renewcommand*\listfigurename{Liste des figures}
+			\listoffigures
+		% Liste des tableaux
+		\listoftables
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
+%        Contenu du document        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	\setcounter{mtc}{3}	% "Corrige" les minitocs décallés à cause des chapter* (ex : table des matières)
+	\pagenumbering{arabic}
+%	\includefrom{Chapitre1/}{Chapitre1}	
+	\includefrom{Chapitre2/}{Chapitre2} 		
+	
+	
+	% Annexes
+	\begin{appendix}
+		\pagenumbering{Roman}
+		%\includefrom{Annexes/}{Annexes}				% Figures en annexe
+			
+		% Liste des acronymes, glossaire et liste des symboles (dans l'ordre)		
+		\printglossary[type=\acronymtype , title={Liste des acronymes}, toctitle={Liste des acronymes}]
+		\printglossary[title=Glossaire,toctitle=Glossaire]
+		\printglossary[type=notation,title={Liste des symboles}, toctitle={Liste des symboles}]
+	
+	\end{appendix}
+
+\end{document}
