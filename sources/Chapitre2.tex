@@ -110,6 +110,7 @@
 		\caption[Détection de nouveauté avec topologie]{Fonctionnement schématique de la détection de nouveauté avec topologie.}\label{fig:img:topo}
 	\end{figureth}
 
+	
 
 	\subsection{Considérations pour la combinaison}
 	
@@ -119,6 +120,23 @@
 
 	\newpage
 	\section{Expérimentations sur la base CDNET14}
+	\subsection{Présentation de la base de données}
+
+	La base CDNET14 est un regroupement de 53 séquences vidéos provenant de sources variées. Elles proviennent principalement de caméras de surveillance ou de captures effectuées par des chercheurs pour leur propres besoins. Elles sont toutes des captures en couleur (sauf pour deux catégories \textit{thermal} et \textit{turbulences}) et de résolution assez faible (dans les environs de $640 \times 480$ pixels). Elles sont groupées en 11 catégories de 4 à 6 vidéos sensées représenter une variété de difficultés que peuvent rencontrer les modèles de détection de changement. Ces catégories sont :
+	\begin{enumerate}
+		\item \textit{Baseline} : La catégorie de base qui comprend les scénarios typique de détection de changement sans difficultés particulières.
+		\item \textit{Bad weather} : Cette catégorie comprend des variations du scénario de base avec une météo dégradée qui impacte la visibilité (de la neige et du brouillard ici).
+		\item \textit{Camera Jitter} : Ces vidéos proviennent de caméras qui ne sont pas stables (à cause de vent fort ou d'autres raisons) et qui par conséquent ont des translations verticales et horizontales fortes et irrégulières. 
+		\item \textit{Dynamic Background} : Ici, la difficulté se porte sur le contenu du fond qui est changeant. Il peut s'agir d'eau (comme une fontaine par exemple, ou d'arbres qui bougent dans le vent).
+		\item \textit{Shadows} : Catégorie de vidéos qui présente plus d'ombres que la moyenne.
+		\item \textit{Night Videos} : Vidéos de nuit avec un contraste fort entre l'obscurité ambiante et les lumières artificielles.
+		\item \textit{Intermittent object motion} : Cette catégorie comprend des scénarios particuliers dans lesquels le changement est intermittent (c'est à dire qu'un objet passe de mouvement à statique ou l'inverse).
+		\item \textit{Low Framerate} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 seconde entre chaque image).
+		\item \textit{Pan tilt zoom} : Catégorie un peu spéciale car elle change une partie fondamentale du scénario. La caméra n'est plus statique mais effectue des roations et des zooms ce qui change significativement son environnement visuel. 
+		\item \textit{Thermal} : Ces vidéos ont été prises par une caméra thermique et son donc en niveau de gris.
+		\item \textit{Turbulences} : Catégorie qui regroupe des vidéos provenant d'un même dataset. Elle proviennent probablement d'une camera a longue distance et ainsi présente de nombreuses turbulences atmosphérique. C'est aussi la deuxième catégorie qui est en niveaux de gris uniquement.
+	\end{enumerate}
+
 	\subsection{Evaluation de la qualité de reconstruction}
 	\subsubsection{Métriques utilisées}
 	\subsubsection{Préparation des données}
