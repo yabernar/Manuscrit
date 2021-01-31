@@ -125,6 +125,23 @@
 	La base CDNET14 est un regroupement de 53 séquences vidéos provenant de sources variées. Elles proviennent principalement de caméras de surveillance ou de captures effectuées par des chercheurs pour leur propres besoins. Elles sont toutes des captures en couleur (sauf pour deux catégories \textit{thermal} et \textit{turbulences}) et de résolution assez faible (dans les environs de $640 \times 480$ pixels). Elles sont groupées en 11 catégories de 4 à 6 vidéos sensées représenter une variété de difficultés que peuvent rencontrer les modèles de détection de changement. Ces catégories sont :
 	\begin{enumerate}
 		\item \textit{Baseline} : La catégorie de base qui comprend les scénarios typique de détection de changement sans difficultés particulières.
+		
+		\begin{figureth}
+			\begin{subfigureth}{0.24\textwidth}
+				\includegraphics[width=\linewidth]{CDNET/baseline/in000277}\caption{Couleurs fusionnées}	
+			\end{subfigureth}
+			\begin{subfigureth}{0.24\textwidth}
+				\includegraphics[width=\linewidth]{CDNET/baseline/in000895}\caption{Couleurs séparées}	
+			\end{subfigureth}
+			\begin{subfigureth}{0.24\textwidth}
+				\includegraphics[width=\linewidth]{CDNET/baseline/in000473}\caption{Couleurs séparées}	
+			\end{subfigureth}
+			\begin{subfigureth}{0.24\textwidth}
+				\includegraphics[width=\linewidth]{CDNET/baseline/in000118}\caption{Couleurs séparées}	
+			\end{subfigureth}
+			\caption[Baseline category]{Exemples }\label{fig:cdnet:baseline}
+		\end{figureth}
+
 		\item \textit{Bad weather} : Cette catégorie comprend des variations du scénario de base avec une météo dégradée qui impacte la visibilité (de la neige et du brouillard ici).
 		\item \textit{Camera Jitter} : Ces vidéos proviennent de caméras qui ne sont pas stables (à cause de vent fort ou d'autres raisons) et qui par conséquent ont des translations verticales et horizontales fortes et irrégulières. 
 		\item \textit{Dynamic Background} : Ici, la difficulté se porte sur le contenu du fond qui est changeant. Il peut s'agir d'eau (comme une fontaine par exemple, ou d'arbres qui bougent dans le vent).
@@ -137,18 +154,61 @@
 		\item \textit{Turbulences} : Catégorie qui regroupe des vidéos provenant d'un même dataset. Elle proviennent probablement d'une camera a longue distance et ainsi présente de nombreuses turbulences atmosphérique. C'est aussi la deuxième catégorie qui est en niveaux de gris uniquement.
 	\end{enumerate}
 
-	\subsection{Evaluation de la qualité de reconstruction}
-	\subsubsection{Métriques utilisées}
-	\subsubsection{Préparation des données}
-	\subsubsection{Paramétrages des modèles}
-	\subsubsection{Résultats expérimentaux}
-	\subsubsection{Interprétations}
-	\subsection{Evaluation de la détection de nouveauté}
-	\subsubsection{Métriques utilisées}
-	\subsubsection{Préparation des données}
-	\subsubsection{Paramétrages des modèles}
-	\subsubsection{Résultats expérimentaux}
-	\subsubsection{Interprétations}
+	\section{Evaluation de la qualité de reconstruction}
+	\subsection{Métriques utilisées}
+	\subsubsection{QE : Quantization Error}
+
+	Basé sur la somme des distances entre les entrées et les winner. Formule. Simple à calculer. Egal à la distance calculée pour déterminer les gagnants. Par conséquent valeur qu'optimise notre modèle. Cependant mauvaise graduation des résultats. La non pénalisation des outliers peut être problématique par exemple.
+
+	\subsubsection{PSNR : Peak Signal to Noise Ratio}
+
+	Similaire à QE, mais avec un carré. Très présent dans la littérature. Formule. Logarithme pour plus de lisibilité. Moins de problèmes avec outliers mais toujours beaucoup de problèmes de bonne échelle de différence.
+
+	\subsubsection{Oeil humain Mk. 1}
+
+	Trouver une métrique correcte serait trop complexe et reviendrait à résoudre le problème initial de toutes façons. Par conséquent utiliser l'oeil humain pour analyser les résultats peut parfois donner la meilleure interprétation de ce qu'il se passe.
+
+	\subsection{Préparation des données}
+	\subsection{Paramétrages des modèles}
+	\subsection{Résultats expérimentaux}
+	\subsection{Interprétations}
+	\section{Evaluation de la détection de nouveauté}
+	\subsection{Métriques utilisées}
+
+	CDNET fournit un ensemble de métriques pour évaluer et se comparer à d'autres modèles. On s'est limité à 3 qui sont les plus pertinentes, les autres étant secondaires à notre goût.
+
+	\subsubsection{Précision}
+
+	Mesure classique et très connue. Formule. Explication de ce que ça mesure.
+
+	\subsubsection{Rappel}
+
+	Mesure classique et très connue. Formule. Explication de ce que ça mesure.
+
+	\subsubsection{F-measure}
+
+	Mesure un peu plus complexe qui essaye de regrouper Prec et rappel en un nombre. Formule. Explication comportement en fonction de precision et rappel.
+
+	\subsubsection{Oeil humain Mk. 1}
+
+	Même chose que précédemment. Particulièrement intéressant pour comparer différentes méthodes entre elles.
+
+	\subsection{Préparation des données}
+
+	Parfois, nouveauté dès le début de la capture. Médiane des X premières images pour obtenir des fond sans nouveauté. Peut parfois lisser les intempéries (figure). Mais pas d'impact sur les résultats (tableau à l'appui). Utilisation d'une partie seulement de la CDNET (1 image sur 50) pour evaluer plus rapidement.
+
+	\subsection{Paramétrages des modèles}
+
+	Liste de tous les paramètres. Les limites de chacun (max, min), leurs effets (plus de calculs, ...) différentes optimisations faites (études séparées pour les époch, alpha, sigma). Les valeurs prises pour les expériences. Tableau récapitulatif.
+
+	\subsection{Résultats expérimentaux}
+
+	Des graphes, pleins de graphes. Et des tableaux. Et des figures.
+
+	\subsection{Interprétations}
+
+	
+
 	\section{Conclusion}
 		
 \bibliographystyle{francaissc}
