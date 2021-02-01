@@ -119,43 +119,217 @@
 	Un problème qui peut apparaître dans ce cas est la trop petite valeur du résultat et le déséquilibre d'impact de nos deux cartes, car nos cartes de saillance sont toutes les deux définies entre 0 et 1. Il est possible que des situations arrivent lors desquelles les deux cartes ont un impact disproportionnel sur le résultat (par exemple si l'objet à détecter sur une carte a une valeur de 0.2 sur une carte et 0.8 sur l'autre, alors la seconde aura plus d'impact sur les valeurs de la sortie finale). De même, en multipliant deux nombres compris entre 0 et 1, le résultat sera forcément inférieur à chacun des deux nombres. Ainsi, on a aussi un effet qui réduit toutes les valeurs de la carte de saillance finale, ce qui peut poser problème si l'on n'y fait pas attention. La solution que nous avons choisi à ces des problèmes, est de re-normaliser les deux cartes de saillances avant de les multiplier. C'est à dire que l'on rééchelonne l'ensemble de la carte en mettant la valeur maximum de la carte à 1 et le minimum à 0 et d'étaler les valeurs intermédiaires entre les deux pour conserver le même espacement relatif entre elles. Cela a pour effet d'éviter une trop grande disproportion d'impact entre les deux cartes (mais ne résoud pas complètement le problème, car on re-normalise avec le maximum, et non avec la possible valeur de la nouveauté detectée), et permet d'avoir un résultat avec des valeurs généralement plus hautes. Cependant, cela vient aussi avec des désavantages, comme par exemple le fait que si il n'y a pas de signal dans l'entrée, le maximum des cartes de saillance sera quand même 1 et on pourrait observer des signaux positifs dans la sortie alors que l'entrée et les cartes de saillances n'en montrent pas. En pratique, cela est peu fréquent car la valeur maximum dans un cas où il n'y a pas de signal en entrée vient du bruit, et est donc décorellée entre les deux cartes. De plus, la taille du signal d'entrée compte, et il est peu probable que du bruit seul puisse créer une zone de signal assez large pour être confondu avec une vraie nouveauté.
 
 	\newpage
-	\section{Expérimentations sur la base CDNET14}
+	\section{Protocole expérimental}
+
+	Cette section regroupe l'ensemble des considérations pratiques pour la réalisation de nos expériences. Nous présenterons la base de donnée utilisée, comment ces données ont été préparées, les différentes métriques que nous avons mesuré et les paramétrages de nos modèles.
+
 	\subsection{Présentation de la base de données}
 
-	La base CDNET14 est un regroupement de 53 séquences vidéos provenant de sources variées. Elles proviennent principalement de caméras de surveillance ou de captures effectuées par des chercheurs pour leur propres besoins. Elles sont toutes des captures en couleur (sauf pour deux catégories \textit{thermal} et \textit{turbulences}) et de résolution assez faible (dans les environs de $640 \times 480$ pixels). Elles sont groupées en 11 catégories de 4 à 6 vidéos sensées représenter une variété de difficultés que peuvent rencontrer les modèles de détection de changement. Ces catégories sont :
-	\begin{enumerate}
-		\item \textit{Baseline} : La catégorie de base qui comprend les scénarios typique de détection de changement sans difficultés particulières.
-		
-		\begin{figureth}
-			\begin{subfigureth}{0.24\textwidth}
-				\includegraphics[width=\linewidth]{CDNET/baseline/in000277}\caption{Couleurs fusionnées}	
-			\end{subfigureth}
-			\begin{subfigureth}{0.24\textwidth}
-				\includegraphics[width=\linewidth]{CDNET/baseline/in000895}\caption{Couleurs séparées}	
-			\end{subfigureth}
-			\begin{subfigureth}{0.24\textwidth}
-				\includegraphics[width=\linewidth]{CDNET/baseline/in000473}\caption{Couleurs séparées}	
-			\end{subfigureth}
-			\begin{subfigureth}{0.24\textwidth}
-				\includegraphics[width=\linewidth]{CDNET/baseline/in000118}\caption{Couleurs séparées}	
-			\end{subfigureth}
-			\caption[Baseline category]{Exemples }\label{fig:cdnet:baseline}
-		\end{figureth}
+	Il n'existe pas à notre connaissance de base de données de détection de nouveauté respectant nos hypothèses de caméra statique, de [...]. Une alternative se trouve dans la base de donnée CDnet \cite{wang-cdnet}. Elle a pour objectif d'uniformiser les résultats dans un domaine proche de la détection de nouveauté ; la détection de changement. Les deux domaines peuvent sembler similaires au premier abord car les deux approches visent la même application réelle. Cependant cela cache une différence conceptuelle. La détection de changement se concentre sur le mouvement pour séparer le fond des objets intéressants dans une image. La détection de nouveauté quand à elle se réfère à une représentation apprise de l'environnement (discuté plus en détail dans la section [...]). Dans les captures vidéos réelles, les deux sont généralement équivalents dû au fait que lorsqu'une nouveauté apparaît, elle le fait généralement en se déplaçant. En pratique cela veut dire que la majorité de CDnet peut être utilisé pour de la détection de nouveauté. Nous présenterons les catégories et vidéos qui ont été retenues, et celles qui ont été filtrées dans la suite.
+	
+	CDnet regroupe 53 séquences vidéos provenant de sources variées. Elles proviennent principalement de caméras de surveillance ou de captures effectuées par des chercheurs pour leur propres besoins. Elles sont toutes des captures en couleur (sauf pour deux catégories \textit{thermal} et \textit{turbulences}) et de résolution assez faible (allant de $320 \times 240$ de $720 \times 486$ pixels). Elles sont groupées en 11 catégories de 4 à 6 vidéos sensées représenter une variété de difficultés que peuvent rencontrer les modèles de détection de changement. Ces catégories sont présentées dans les figures suivantes :
 
-		\item \textit{Bad weather} : Cette catégorie comprend des variations du scénario de base avec une météo dégradée qui impacte la visibilité (de la neige et du brouillard ici).
-		\item \textit{Camera Jitter} : Ces vidéos proviennent de caméras qui ne sont pas stables (à cause de vent fort ou d'autres raisons) et qui par conséquent ont des translations verticales et horizontales fortes et irrégulières. 
-		\item \textit{Dynamic Background} : Ici, la difficulté se porte sur le contenu du fond qui est changeant. Il peut s'agir d'eau (comme une fontaine par exemple, ou d'arbres qui bougent dans le vent).
-		\item \textit{Shadows} : Catégorie de vidéos qui présente plus d'ombres que la moyenne.
-		\item \textit{Night Videos} : Vidéos de nuit avec un contraste fort entre l'obscurité ambiante et les lumières artificielles.
-		\item \textit{Intermittent object motion} : Cette catégorie comprend des scénarios particuliers dans lesquels le changement est intermittent (c'est à dire qu'un objet passe de mouvement à statique ou l'inverse).
-		\item \textit{Low Framerate} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 seconde entre chaque image).
-		\item \textit{Pan tilt zoom} : Catégorie un peu spéciale car elle change une partie fondamentale du scénario. La caméra n'est plus statique mais effectue des roations et des zooms ce qui change significativement son environnement visuel. 
-		\item \textit{Thermal} : Ces vidéos ont été prises par une caméra thermique et son donc en niveau de gris.
-		\item \textit{Turbulences} : Catégorie qui regroupe des vidéos provenant d'un même dataset. Elle proviennent probablement d'une camera a longue distance et ainsi présente de nombreuses turbulences atmosphérique. C'est aussi la deuxième catégorie qui est en niveaux de gris uniquement.
-	\end{enumerate}
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/baseline/in000277}\caption{Highway}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/baseline/in000895}\caption{Office}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/baseline/in000473}\caption{Pedestrians}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/baseline/in000118}\caption{PETS2006}	
+		\end{subfigureth}
+		\caption[Catégorie Baseline]{\textit{Baseline} : La catégorie de base qui comprend des scénarios typiques de détection de changement (traffic, piétons) sans difficultés particulières.}\label{fig:cdnet:baseline}
+	\end{figureth}
 
-	\section{Evaluation de la qualité de reconstruction}
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/badWeather/in000810}\caption{Snowfall}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/badWeather/in001951}\caption{Skating}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/badWeather/in002841}\caption{WetSnow}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/badWeather/in004863}\caption{Blizzard}	
+		\end{subfigureth}
+		\caption[Catégorie Bad weather]{\textit{Bad weather} : Cette catégorie comprend des variations du scénario de base avec une météo dégradée. La difficulté principale vient de la neige qui tombe, et du changment de l'environnement avec les traces de pneus sur la neige par exemple.}\label{fig:cdnet:badweather}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/cameraJitter/in000145}\caption{Sidewalk}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/cameraJitter/in000187}\caption{Badminton}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/cameraJitter/in000355}\caption{Traffic}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/cameraJitter/in002287}\caption{Boulevard}	
+		\end{subfigureth}
+		\caption[categorie camera jitter]{\textit{Camera Jitter} : Ces vidéos proviennent de caméras instables à cause de vent fort ou d'autres raisons. Elles ont de façon irrégulière des translations verticales et horizontales  rapides et de petite amplitude.}\label{fig:cdnet:jitter}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in000716}\caption{Fountain01}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in000720}\caption{Fountain02}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in000937}\caption{Canoe}	
+		\end{subfigureth}\\
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in001504}\caption{Fall}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in002519}\caption{Overpass}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in007726}\caption{Boats}	
+		\end{subfigureth}
+		\caption[Categorie Dynamic Background]{\textit{Dynamic Background} : La difficulté se porte sur le contenu du fond qui est changeant. Il peut s'agir d'eau ou d'arbres qui bougent dans le vent.}\label{fig:cdnet:dynamic}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/shadow/in000260}\caption{CopyMachine}
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/shadow/in000320}\caption{PeopleInShade}
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/shadow/in000358}\caption{Bungalows}	
+		\end{subfigureth}\\
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/shadow/in001015}\caption{BusStation}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/shadow/in001210}\caption{Cubicle}
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/shadow/in001850}\caption{Backdoor}	
+		\end{subfigureth}
+		\caption[Categorie Shadow]{\textit{Shadow} : Catégorie de vidéos qui présente plus d'ombres que la moyenne.}\label{fig:cdnet:shadow}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000060}\caption{WinterStreet}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000125}\caption{FluidHighway}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000150}\caption{BusyBoulevard}	
+		\end{subfigureth}\\
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000320}\caption{TramStation}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000362}\caption{BridgeEntry}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000671}\caption{StreetCornerAtNight}	
+		\end{subfigureth}
+		\caption[Categorie Night Videos]{\textit{Night Videos} : Vidéos de nuit avec un contraste fort entre l'obscurité ambiante et les lumières artificielles de l'éclairage public et des phares de voitures.}\label{fig:cdnet:night}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/thermal/in000145}\caption{Park}
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/thermal/in000800}\caption{Corridor}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/thermal/in000840}\caption{DiningRoom}	
+		\end{subfigureth}\\
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/thermal/in001050}\caption{Library}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/thermal/in002220}\caption{LakeSide}	
+		\end{subfigureth}
+		\caption[Categorie thermal]{\textit{Thermal} : Ces vidéos ont été prises par une caméra infrarouge et sont en niveau de gris.}\label{fig:cdnet:shadow}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/turbulence/in000425}\caption{Turbulence0}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/turbulence/in000920}\caption{Turbulence1}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/turbulence/in000140}\caption{Turbulence2}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/turbulence/in000195}\caption{Turbulence3}	
+		\end{subfigureth}
+		\caption[Categorie turbulence]{\textit{Turbulence} : Catégorie qui regroupe des vidéos provenant d'une même caméra infrarouge. Les captures ont été faites avec un objectif longue distance filmant des scènes à 5 à 15 km de l'objectif. Elle présente de nombreuses distortions et turbulences atmosphérique dûs à la chaleur et à la distance.}\label{fig:cdnet:turbulence}
+	\end{figureth}
+	
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/intermittentObjectMotion/in001000}\caption{StreetLight}
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/intermittentObjectMotion/in001300}\caption{Sofa}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/intermittentObjectMotion/in001350}\caption{Tramstop}	
+		\end{subfigureth}
+		\caption[Categorie intermittent object motion - Reduced]{\textit{Intermittent object motion Reduced} : Cette catégorie comprend des scénarios particuliers dans lesquels le changement est intermittent (c'est à dire qu'un objet passe de mouvement à statique ou inversement). Dans cette catégorie trois vidéos sur six on été conservées.}\label{fig:cdnet:shadow}
+	\end{figureth}
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/lowFramerate/in000062}\caption{Turnpike}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/lowFramerate/in000088}\caption{TramCrossroad}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{CDNET/lowFramerate/in000235}\caption{Tunnel Exit}	
+		\end{subfigureth}
+		\caption[Categorie low framerate - Reduced]{\textit{Low Framerate Reduced} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 seconde entre chaque image). Cela a pour but de pénaliser les approches à partir de flow optique, cependant notre approche n'est pas concernée. Trois vidéos sur les quatre ont été conservées. Seule une vidéo d'une marina a été retirée car la nouveauté (des bateaux) était trop similaire au fond, qui consiste en un grand nombre de bateaux ammarés.}\label{fig:cdnet:fps}
+	\end{figureth}
+
+
+	Reduced categories explanations.
+
+	\begin{figureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{intermittentObjectExample/in001285}\caption{Highway}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{intermittentObjectExample/gt001285}\caption{Office}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{intermittentObjectExample/in001815}\caption{Pedestrians}	
+		\end{subfigureth}
+		\begin{subfigureth}{0.24\textwidth}
+			\includegraphics[width=\linewidth]{intermittentObjectExample/gt001815}\caption{PETS2006}	
+		\end{subfigureth}
+		\caption[camera jitter category]{Shadows}\label{fig:cdnet:shadow}
+	\end{figureth}
+
+	
+	Il y a aussi dans également deux catégories que nous avons décidé de ne pas du tout utiliser car elles ne correspondent pas à notre scénario. \textit{Pan tilt zoom} : Catégorie un peu spéciale car elle change une partie fondamentale du scénario. La caméra n'est plus statique mais effectue des roations et des zooms ce qui change significativement son environnement visuel. Ce qui ne colle pas avec notre scénario.
+
 	\subsection{Métriques utilisées}
+
+	CDNET fournit un ensemble de métriques pour évaluer et se comparer à d'autres modèles. On s'est limité à 3 qui sont les plus pertinentes, les autres étant secondaires à notre goût.
+
 	\subsubsection{QE : Quantization Error}
 
 	Basé sur la somme des distances entre les entrées et les winner. Formule. Simple à calculer. Egal à la distance calculée pour déterminer les gagnants. Par conséquent valeur qu'optimise notre modèle. Cependant mauvaise graduation des résultats. La non pénalisation des outliers peut être problématique par exemple.
@@ -163,19 +337,6 @@
 	\subsubsection{PSNR : Peak Signal to Noise Ratio}
 
 	Similaire à QE, mais avec un carré. Très présent dans la littérature. Formule. Logarithme pour plus de lisibilité. Moins de problèmes avec outliers mais toujours beaucoup de problèmes de bonne échelle de différence.
-
-	\subsubsection{Oeil humain Mk. 1}
-
-	Trouver une métrique correcte serait trop complexe et reviendrait à résoudre le problème initial de toutes façons. Par conséquent utiliser l'oeil humain pour analyser les résultats peut parfois donner la meilleure interprétation de ce qu'il se passe.
-
-	\subsection{Préparation des données}
-	\subsection{Paramétrages des modèles}
-	\subsection{Résultats expérimentaux}
-	\subsection{Interprétations}
-	\section{Evaluation de la détection de nouveauté}
-	\subsection{Métriques utilisées}
-
-	CDNET fournit un ensemble de métriques pour évaluer et se comparer à d'autres modèles. On s'est limité à 3 qui sont les plus pertinentes, les autres étant secondaires à notre goût.
 
 	\subsubsection{Précision}
 
@@ -191,7 +352,7 @@
 
 	\subsubsection{Oeil humain Mk. 1}
 
-	Même chose que précédemment. Particulièrement intéressant pour comparer différentes méthodes entre elles.
+	Trouver une métrique correcte serait trop complexe et reviendrait à résoudre le problème initial de toutes façons. Par conséquent utiliser l'oeil humain pour analyser les résultats peut parfois donner la meilleure interprétation de ce qu'il se passe. Particulièrement intéressant pour comparer différentes méthodes entre elles.
 
 	\subsection{Préparation des données}
 
@@ -201,13 +362,20 @@
 
 	Liste de tous les paramètres. Les limites de chacun (max, min), leurs effets (plus de calculs, ...) différentes optimisations faites (études séparées pour les époch, alpha, sigma). Les valeurs prises pour les expériences. Tableau récapitulatif.
 
-	\subsection{Résultats expérimentaux}
+	\newpage
 
+	\section{Résultats expérimentaux}
+	\subsection{Evaluation de la qualité de reconstruction}
+
+	Des graphes, pleins de graphes. Et des tableaux. Et des figures.
+
+	\subsection{Evaluation de la détection de nouveauté}
+	
 	Des graphes, pleins de graphes. Et des tableaux. Et des figures.
 
 	\subsection{Interprétations}
 
-	
+	Mauvaise généralisation qui empêche la caméra en mouvement. La compression est différente du tracking (meilleure compression != meilleur tracking). Problème de distances pour l'apprentissage pour correctement représenter les images.
 
 	\section{Conclusion}
 		
