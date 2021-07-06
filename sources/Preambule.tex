@@ -101,17 +101,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Mise en forme du texte        
 \usepackage{xspace}
-\usepackage[load-configurations = abbreviations]{siunitx}
-	\DeclareSIUnit{\MPa}{\mega\pascal}
-	\DeclareSIUnit{\micron}{\micro\meter}
-	\DeclareSIUnit{\tr}{tr}
-	\DeclareSIPostPower\totheM{m}
-	\sisetup{
-	locale = FR,
-	  inter-unit-separator=$\cdot$,
-	  range-phrase=~\`{a}~,     	% Utilise le tiret court pour dire "de... à"
-	  range-units=single,  		% Cache l'unité sur la première borne
-	  }
+
+%% AJOUTS PERSOS
+\usepackage{siunitx}
+\sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}, mode=text, detect-weight, locale = FR, inter-unit-separator=$\cdot$,range-phrase=~\`{a}~,range-units=single}
+\newcommand{\bst}[1]{\bfseries $\num{#1}$}
+\newcommand{\nbr}[1]{$\num{#1}$}
+
 
 \usepackage[version=3]{mhchem}	% Equations chimiques
 \usepackage{textcomp}

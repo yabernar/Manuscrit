@@ -399,12 +399,16 @@
 
 	\subsection{Préparation des données}
 
+	\subsubsection{Image de fond}
+
 	Notre modèle a besoin pour l'apprentissage un fond sans cibles pour fonctionner. Il nous faut donc une image du fond pour chaque séquence vidéo. Une idée simple serait de sélectionner une image sans cible dans la séquence et de l'utiliser comme fond. Cependant il arrive que des vidéos présentent pendant toute la séquence de la nouveauté, et qu'une image sans perturbation n'existe pas dans la séquence. Pour contrer ce problème, une technique fréquemment utilisée [réfs] pour enlever des objets d'une image est de générer une image médiane à partir d'une séquence. [détails de l'implémentation à voir plus tard].
 
 	Un problème qui peut survenir avec la médiane, est l'adoucissement des images en enlevant les valeurs extrêmes qui peuvent apparaîtres dans certaines images. Par exemple pour les images de la catégorie \textit{Bad Weather}, les flocons de neiges qui sont constamment devant la caméra disparaissent dans l'image médiane. Mais cela ne pose pas de problème particulier en pratique [réf tableau].
 
 	[tableau comparatif]
 	
+	\subsubsection{Échantillonage de l'évaluation}
+
 	Le calcul des métriques sur les séquences de CDnet se font sur de nombreuses images [nombres précis]. Evaluer notre modèle sur l'intégralité des images de la base induit un coût important en calculs. Des images proches dans le temps sont aussi généralement similaires dans leur contenu. De plus nos modèles évaluent les images indépendamment les unes des autres. Il serait donc possible d'évaluer une séquence de CDnet en ne mesurant qu'un sous-échantillon de la séquence et d'obtenir des mesures de précision, rappel et F-measure approximées. Nous avons procédé à une étude pour déterminer la taille de sous-échantillon qui conviendrait le mieux que nous présentons dans la figure [ref figure]. Nous avons choisi d'évaluer une image sur 50 [ou x images par séquence ? à vérifier] pour toutes les séquences, car c'est la valeur qui permet le plus de gain de vitesse (50 fois plus rapide) tout en restant assez précis sur les métriques [pertes en métriques].   
 
 	[Inclusion figure comparaison échantillonnage]
@@ -412,6 +416,37 @@
 	\subsection{Paramétrages des modèles}
 
 	Liste de tous les paramètres. Les limites de chacun (max, min), leurs effets (plus de calculs, ...) différentes optimisations faites (études séparées pour les époch, alpha, sigma). Les valeurs prises pour les expériences. Tableau récapitulatif.
+
+	\subsubsection{Variation aléatoire}
+
+	Les SOM que nous utilisons ne sont pas déterministes, et plusieurs facteurs aléatoires peuvent influencer le résultat d'un apprentissage. Ces deux facteurs sont l'initialisation des poids des neurones, que nous faisons débuter à des valeurs aléatoires entre 0 et 1 pour chaque composante. Mais aussi l'ordre de présentation de la base d'apprentissage qui est aléatoire, et donc varie avec la graine du générateur d'aléatoire paramétrée avant l'apprentissage. Cette dépendance à l'aléatoire implique que les métriques que l'on aura calculées peuvent varier d'un apprentissage à l'autre. Nous avons étudié cette variabilité pour connaître quel serait le plus petit nombre d'exécutions nécessaire pour donner une estimation fiable de la moyenne des résultats pour un set de paramètres. 
+
+	\begin{figureth}
+		\includegraphics[width=.6\linewidth]{parameters/randomness_distribution}
+		\caption[Effet de l'aléatoire sur les métriques]{Distribution des métriques pour un set de paramètres donnés pour une vidéo. On a découpé l'intervalle de résultats en 9 sections égales. La section numéro 5 a la moyenne en son centre. L'épaisseur de chaque région a été ajustée pour que le maximum soit à la limite haute de la section 9 ou le minimum à la limite basse de la section 1, en choisissant celui qui donnerais les plus grandes sections. L'axe des ordonnées quand à lui donne le nombre d'exécutions incluses dans chaque catégorie, sur 100 exécutions au total.\\
+		
+		Nous pouvons observer que les distributions suivent une loi normale. Il semblerait que la variabilité de la F-measure est inférieure à celle de la MSQE. Pour la fmeasure, la moyenne se situe à 65.20\%, le maximum à 66.62\% et le minimum à 63.37\%.}\label{fig:params:random}
+	\end{figureth}
+
+	D'après la figure \ref{fig:params:random}, le comportement aléatoire de notre modèle peut-être assimilé à une loi normale. Cela nous permet, en utilisant la règle empirique, de donner un intervalle de confiance lorsque l'on estimera la moyenne pour nos mesures. Nous supposerons que les variances de la catégorie \textit{baseline} sur laquelle nous avons mesuré ces valeurs est du même ordre que sur toutes les vidéos du jeu de données CDNET. Nous supposerons aussi que toutes les distritions suivent une loi normale, comme la vidéo \textit{highway}.
+
+	L'objectif de l'estimation des 
+
+	\begin{tableth}
+	\caption[Estimations statistiques du nombre de graines requises]{Estimations statistiques du nombre de graines requises}
+	\label{tab:nb_seed_stats}
+	\begin{tabular}{|c|c|cccc|}
+		\hline
+		Video	& Standard deviation & $\delta$=1\% /2$\sigma$ & $\delta$=1\% /3$\sigma$ & $\delta$=0.5\% /2$\sigma$ & $\delta$=0.5\% /3$\sigma$\\
+		\hline
+		highway & $5.68 \times 10^{-3}$ & $1.3$ & $2.9$ & $5.2$ & $11.6$\\
+		office & $9.9 \times 10^{-3}$ & $4.0$ & $8.9$ & $15.8$ & $35.6$\\
+		pedestrians & $1.52 \times 10^{-2}$ & $9.2$ & $20.8$ & $36.9$ & $83.1$\\
+		PETS2006 & $1.08 \times 10^{-2}$ & $4.7$ & $10.5$ & $18.6$ & $41.9$\\
+		\hline
+	\end{tabular}
+	\end{tableth}
+
 
 	\subsubsection{Paramètres des SOM}
 
