@@ -415,7 +415,15 @@
 
 	\subsection{Paramétrages des modèles}
 
-	Liste de tous les paramètres. Les limites de chacun (max, min), leurs effets (plus de calculs, ...) différentes optimisations faites (études séparées pour les époch, alpha, sigma). Les valeurs prises pour les expériences. Tableau récapitulatif.
+	Notre modèle comporte de nombreux paramètres pour lesquels l'impact sur les performances n'est pas trivial. C'est à dire, que changer un paramètre dans un sens pourrait amener à une augmentation des performances à une certaine valeur, et à une diminution des performance à une autre valeur. Il y a également des interactions entre les paramètres qui signifie que le paramètre $a$ optimal ne sera pas le même pour deux valeurs du paramètre $b$ par exemple. 
+
+	En général, dans ces cas de figure, on effectue une optimisation globale de tous les paramètres en même temps. Pour prendre en compte l'intéraction entre les paramètres. Cependant, dans notre cas, l'espace de recherche serait très grand (8 dimensions pour 8 paramètres) et nécessiterai un très grand nombre d'exécutions pour le couvrir entièrement. Chacune de nos exécutions durant en moyenne quelques minutes, il n'est pas souhaitable d'en effectuer un trop grand nombre.
+
+	Nous avons ainsi choisi de faire une étude paramétrique en séparant les paramètres le plus possible. Cela nous permet d'analyser chaque paramètre, ou groupe de paramètres en détail pour mieux comprendre leur effet sur le comportement de notre modèle. Cela nous amènera également à pouvoir prédire un comportement dans des espaces paramétriques que nous n'avons pas explorés ; vers quelle valeur les performances convergent-t-elles si on pousse un paramètre vers l'infini par exemple. Cette étude pourra être faite avec un nombre raisonnable d'exécutions avec les moyens matériels que nous avons à disposition. Le défaut sera que l'interaction entre certains paramètres sera difficile à évaluer.
+
+	Nous optimiserons nos paramètres pour maximiser la \textit{fmeasure}, car c'est la métrique la plus proche de la tâche de détection de nouveauté.
+	
+	La section se concluera par un tableu récapitulatif des paramètres que nous aurons utilisé pour générer nos résultats.
 
 	\subsubsection{Variation aléatoire}
 
@@ -428,16 +436,14 @@
 		Nous pouvons observer que les distributions suivent une loi normale. Il semblerait que la variabilité de la F-measure est inférieure à celle de la MSQE. Pour la fmeasure, la moyenne se situe à 65.20\%, le maximum à 66.62\% et le minimum à 63.37\%.}\label{fig:params:random}
 	\end{figureth}
 
-	D'après la figure \ref{fig:params:random}, le comportement aléatoire de notre modèle peut-être assimilé à une loi normale. Cela nous permet, en utilisant la règle empirique, de donner un intervalle de confiance lorsque l'on estimera la moyenne pour nos mesures. Nous supposerons que les variances de la catégorie \textit{baseline} sur laquelle nous avons mesuré ces valeurs est du même ordre que sur toutes les vidéos du jeu de données CDNET. Nous supposerons aussi que toutes les distritions suivent une loi normale, comme la vidéo \textit{highway}.
-
-	L'objectif de l'estimation des 
+	D'après la figure \ref{fig:params:random}, le comportement aléatoire de notre modèle peut-être assimilé à une loi normale. Cela nous permet, en utilisant la règle empirique, de donner un intervalle de confiance lorsque l'on estimera la moyenne pour nos mesures. Nous supposerons que les variances de la catégorie \textit{baseline} sur laquelle nous avons mesuré ces valeurs est du même ordre que sur toutes les vidéos du jeu de données CDNET. Nous supposerons aussi que toutes les distributions suivent une loi normale, comme celles de la \textit{baseline}.
 
 	\begin{tableth}
-	\caption[Estimations statistiques du nombre de graines requises]{Estimations statistiques du nombre de graines requises}
+	\caption[Estimations statistiques du nombre de graines requises]{Nombre d'exécutions avec graines aléatoires différentes requises pour que la moyenne de l'échantillon est au moins à distance $\delta$ de la vraie moyenne, avec une probabilité de 95\% pour 2$\sigma$ et 99,7\% pour 3$\sigma$. L'écart type à partir duquel on déduit ces valeurs, a été calculé sur un échantillon de 100 exécutions pour \textit{highway}, et 50 échantillons pour les autres.}
 	\label{tab:nb_seed_stats}
 	\begin{tabular}{|c|c|cccc|}
 		\hline
-		Video	& Standard deviation & $\delta$=1\% /2$\sigma$ & $\delta$=1\% /3$\sigma$ & $\delta$=0.5\% /2$\sigma$ & $\delta$=0.5\% /3$\sigma$\\
+		Video	& Écart-type & $\delta=1\%$ /$2\sigma$ & $\delta=1\%$ /$3\sigma$ & $\delta=0.5\%$ /$2\sigma$ & $\delta=0.5\%$ /$3\sigma$\\
 		\hline
 		highway & $5.68 \times 10^{-3}$ & $1.3$ & $2.9$ & $5.2$ & $11.6$\\
 		office & $9.9 \times 10^{-3}$ & $4.0$ & $8.9$ & $15.8$ & $35.6$\\
@@ -447,11 +453,14 @@
 	\end{tabular}
 	\end{tableth}
 
+	D'après le tableau \ref{tab:nb_seed_stats}, nous pouvons observer que l'écart type est très variable en fonction de la vidéo que l'on traite. Chaque éxécution pouvant durer plusieurs minutes, il est aussi difficilement concevable de faire nos optimisations en visant un résultat à $\delta = 0.5$ / $3\sigma$, car cela nécessiterais dans certains cas presque 100 exécutions pour chaque set de paramètres. Nous avons ainsi choisi de se limiter à 8 exécutions avec des graines aléatoires différentes, car les ordinateurs sur lesquels nous expérimentons possèdent 8 coeurs, et que cela nous permet de dépasser le premier seuil de $\delta=1\%$ /$2\sigma$ pour la plupart des vidéos.
+
+	\subsubsection{Optimisation d'$\alpha$ et de $\sigma$}
+
+	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur la \textit{baseline}. D'abord sur chaque vidéo indépendamment, puis sur l'ensemble pour comparer.
 
 	\subsubsection{Paramètres des SOM}
 
-	[alpha, sigma, + optimisation] 
-	
 	[nb neurons]
 
 	[nb epoch]
