@@ -16,11 +16,7 @@
 % Début du chapitre
 			
 	\section{Introduction}
-	\section{Modèles Neuronaux}
-	\subsection{Cartes Auto-Organisatrices}
-	\subsection{Gaz Neuronaux en Croissance}
 
-	\newpage
 	\section{Application aux images}\label{sec:images}
 
 	Il existe de nombreuses possibilités différentes pour apprendre des images avec la quantification vectorielle, dû au grand nombre de façons de découper une image en vecteurs d'entrée. Pour présenter l'impact que peut avoir ce découpage, on peut considérer deux extrêmes : apprendre l'image en entier ou apprendre chaque pixel individuellement. Le premier cas peut sembler absurde dans le cas d'une seule image (une base de données d'un seul élément), mais peut présenter un intérêt lorsque l'on considère une suite d'images par exemple. Dans cet exemple, l'environnement appris serait défini par l'entièreté de ce que voit le capteur et tous les changements, où qu'ils soient dans l'image, auraient de l'importance.
@@ -90,7 +86,7 @@
 	\end{figureth}
 
 	\newpage
-	\section{Détection de nouveauté}
+	\section{Notre détection de nouveauté}
 
 	Nous avons à partir des différentes propriétés de nos modèles neuronaux développé des processus de détection de nouveauté. Ces processus ne sont pas intrinsèques à nos modèles, c'est à dire que nos modèles neuronaux n'ont pas été définis dans le but d'effectuer une détection de nouveauté. Elle est une propriété émergente de ces modèles. Nous présentons ces deux méthodes dans cette section. La première est basée sur la propriété de quantification vectorielle et la seconde sur la topologie.
 
@@ -409,9 +405,14 @@
 	
 	\subsubsection{Échantillonage de l'évaluation}
 
-	Le calcul des métriques sur les séquences de CDnet se font sur de nombreuses images [nombres précis]. Evaluer notre modèle sur l'intégralité des images de la base induit un coût important en calculs. Des images proches dans le temps sont aussi généralement similaires dans leur contenu. De plus nos modèles évaluent les images indépendamment les unes des autres. Il serait donc possible d'évaluer une séquence de CDnet en ne mesurant qu'un sous-échantillon de la séquence et d'obtenir des mesures de précision, rappel et F-measure approximées. Nous avons procédé à une étude pour déterminer la taille de sous-échantillon qui conviendrait le mieux que nous présentons dans la figure [ref figure]. Nous avons choisi d'évaluer une image sur 50 [ou x images par séquence ? à vérifier] pour toutes les séquences, car c'est la valeur qui permet le plus de gain de vitesse (50 fois plus rapide) tout en restant assez précis sur les métriques [pertes en métriques].   
+	Le calcul des métriques sur les séquences de CDnet se font sur de nombreuses images. Pour \textit{baseline} par exemple, il faut en moyenne 1100 images par séquence. Chaque image nécessitant quelques secondes de temps de calculs, utiliser l'intégralité de chaque séquence serait beaucoup trop long pour pouvoir étudier en détail les nombreux paramètres de notre modèle. En partant du principe que des images proches dans le temps sont aussi généralement similaires dans leur contenu, il serait possible d'évaluer une séquence en n'en évaluant qu'un sous-échantillon afin d'obtenir des mesures approximées représentatives du résultat complet. Les images d'une séquence étant indépendantes temporellement les unes des autres dans notre modèle, nous avons choisi de prendre un sous-échantillonage régulier de la séquence.
+	
+	Nous avons procédé à une étude pour déterminer la taille de sous-échantillon qui conviendrait le mieux, que nous présentons dans la figure \ref{fig:params:nbimgs}. Nous avons choisi d'évaluer 105 images par séquences. Cela représente une évaluation entre 7 et 14 fois plus rapide que si on évaluait l'intégralité de la séquence. La vitesse dépendant du nombre d'images total de la séquence complète. La précision des métriques en est impactée, mais l'on reste entre 0.5\% du résultat.
 
-	[Inclusion figure comparaison échantillonnage]
+	\begin{figureth}
+		\includegraphics[width=\linewidth]{parameters/number_imgs_evaluated}
+		\caption[Échantillonage de l'évaluation]{Précision de l'approximation de la fmeasure en fonction de la taille de l'échantillon. 105 a été choisi car c'est le plus petit échantillon proche de la moyenne et ne dépassant quasiment pas les 0.5\% de différence. Les sections droites des lignes, surtout vers des grands échantillons, sont à cause d'arrondis sur la taille du pas entier utilisé. Ainsi les échantillons ne sont pas de la taille exacte que ce que laisse indiquer l'abscisse, mais au moins de la taille indiquée, souvent plus grands. La variabilité qui augmente après 105 n'est pas un problème, car l'on ne mesure pas un procédé stochastique, mais la représentativité des images sélectionnées. Ce qui veut dire que même avec des paramètres différents pour la SOM, 105 sera normalement toujours le plus proche de la moyenne, et avec assez peu de variations.}\label{fig:params:nbimgs}
+	\end{figureth}
 
 	\subsection{Paramétrages des modèles}
 
@@ -439,7 +440,6 @@
 	D'après la figure \ref{fig:params:random}, le comportement aléatoire de notre modèle peut-être assimilé à une loi normale. Cela nous permet, en utilisant la règle empirique, de donner un intervalle de confiance lorsque l'on estimera la moyenne pour nos mesures. Nous supposerons que les variances de la catégorie \textit{baseline} sur laquelle nous avons mesuré ces valeurs est du même ordre que sur toutes les vidéos du jeu de données CDNET. Nous supposerons aussi que toutes les distributions suivent une loi normale, comme celles de la \textit{baseline}.
 
 	\begin{tableth}
-	\caption[Estimations statistiques du nombre de graines requises]{Nombre d'exécutions avec graines aléatoires différentes requises pour que la moyenne de l'échantillon est au moins à distance $\delta$ de la vraie moyenne, avec une probabilité de 95\% pour 2$\sigma$ et 99,7\% pour 3$\sigma$. L'écart type à partir duquel on déduit ces valeurs, a été calculé sur un échantillon de 100 exécutions pour \textit{highway}, et 50 échantillons pour les autres.}
 	\label{tab:nb_seed_stats}
 	\begin{tabular}{|c|c|cccc|}
 		\hline
@@ -451,43 +451,334 @@
 		PETS2006 & $1.08 \times 10^{-2}$ & $4.7$ & $10.5$ & $18.6$ & $41.9$\\
 		\hline
 	\end{tabular}
+	\caption[Estimations statistiques du nombre de graines requises]{Nombre d'exécutions avec graines aléatoires différentes requises pour que la moyenne de l'échantillon est au moins à distance $\delta$ de la vraie moyenne, avec une probabilité de 95\% pour 2$\sigma$ et 99,7\% pour 3$\sigma$. L'écart type à partir duquel on déduit ces valeurs, a été calculé sur un échantillon de 100 exécutions pour \textit{highway}, et 50 échantillons pour les autres.}
 	\end{tableth}
 
 	D'après le tableau \ref{tab:nb_seed_stats}, nous pouvons observer que l'écart type est très variable en fonction de la vidéo que l'on traite. Chaque éxécution pouvant durer plusieurs minutes, il est aussi difficilement concevable de faire nos optimisations en visant un résultat à $\delta = 0.5$ / $3\sigma$, car cela nécessiterais dans certains cas presque 100 exécutions pour chaque set de paramètres. Nous avons ainsi choisi de se limiter à 8 exécutions avec des graines aléatoires différentes, car les ordinateurs sur lesquels nous expérimentons possèdent 8 coeurs, et que cela nous permet de dépasser le premier seuil de $\delta=1\%$ /$2\sigma$ pour la plupart des vidéos.
 
 	\subsubsection{Optimisation d'$\alpha$ et de $\sigma$}
 
-	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur la \textit{baseline}. D'abord sur chaque vidéo indépendamment, puis sur l'ensemble pour comparer.
+	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur des vidéos de la \textit{baseline}. Nous avons fait plus de 1000 mesures par vidéo, avec pour chaque mesure, la moyenne de 8 exécutions pour réduire le bruit statistique. La figure \ref{fig:params:sigopt} explique le choix de $\sigma$ que nous avons fait commencé à 0.4 et finir à 0.001. Puis nous avons relancé une optimisation pour les valeurs d'alpha uniquement pour mieux observer les tendances avec les valeurs fixées de $\sigma$. La figure \ref{fig:params:alphaopt} présente ces résultats. Nous avons choisi pour $\alpha$ un départ à 0.5 et de finir à 0.06.
 
-	\subsubsection{Paramètres des SOM}
+	Nous pouvons aussi noter l'ordre d'importance des paramètres par leur impact sur le résultat : $\textit{Sigma end} > \textit{Sigma start} > \textit{Alpha end} > \textit{Alpha start}$.
 
-	[nb neurons]
+	\begin{figureth}
+		\begin{subfigureth}{.75\textwidth}
+			\includegraphics[width=\linewidth]{parameters/sigma_end}	
+		\end{subfigureth}
+		\begin{subfigureth}{.75\textwidth}
+			\includegraphics[width=\linewidth]{parameters/sigma_start}	
+		\end{subfigureth}
+		\caption[Optimisation de $\sigma$]{Le premier paramètre qui a une valeur optimale évidente est \textit{Sigma end}, où une petite valeur proche de zéro semble idéale. Cela s'explique facilement du fait qu'une valeur faible de \textit{Sigma end} induit que lors des dernières époques la SOM va se focaliser sur l'optimisation de la quantification vectorielle au dépend de la topologie, pour obtenir des neurones les plus proches possibles des imagettes qu'ils représentent. Les quelques outliers très élevés que l'on peut observer avec une \textit{Sigma end} faible sont dû à des valeurs de \textit{Sigma start} proches de 0 également, et qui par conséquent n'ont aucun apprentissage topologique, ce qui réduit significativement les performances.\\
+		
+		Le second graphique représente un sous échantillon d'expériences sélectionnés avec une valeur de \textit{Sigma end} inférieure à 0.05. En affichant les résultats en fonction de \textit{Sigma start}, on observe une légère préférence pour des valeurs de \textit{Sigma start} intermédiaires, c'est à dire dans les alentours de 0.4.}\label{fig:params:sigopt}
+	\end{figureth}
 
-	[nb epoch]
 
-	[figures PSNR + F-measure par nb epoch]
+	\begin{figureth}
+		\begin{subfigureth}{.75\textwidth}
+			\includegraphics[width=\linewidth]{parameters/alpha_end}	
+		\end{subfigureth}
+		\begin{subfigureth}{.75\textwidth}
+			\includegraphics[width=\linewidth]{parameters/alpha_start}	
+		\end{subfigureth}
+		\caption[Optimisation d'$\alpha$]{Les différences sont moins prononcées pour \textit{Alpha end} que pour \textit{Sigma end}, mais une préférence est tout de même visible. Une faible valeur d'\textit{Alpha end} non nulle semble optimale. En pratique cela se traduit par un ajustement fin des poids des neurones à la fin de l'apprentissage.\\
+		
+		Pour \textit{Alpha start} nous avons à nouveau réduit les expériences à un échantillon dont la valeur d'\textit{Alpha end} est inférieure à 0.2. Il ne semble pas y avoir de préférence forte pour \textit{Alpha start}, nous prendrons donc une valeur intermédiaire de 0.5, qui semble marcher le mieux.}\label{fig:params:alphaopt}
+	\end{figureth}
+
+
+	\subsubsection{Durée de l'apprentissage}
+
+	Graph incoming !
+
+	\subsubsection{Seuil de décision}
+
+	Seuil de décision (transformation de carte de saillance 0-255 en binaire)
 
 	\subsubsection{Paramètres des GNG}
 
 	[epsilon, maximum age, error decrease, neurons nbr, epochs nbr]
 
-	\subsubsection{Paramètres de l'apprentissage des images}
+	\subsubsection{Récapitulatif}
 
-	Un paramètre important dans la détection de nouveauté est la taille des imagettes utilisées pour la quantification. 
-	Seuil de décision (transformation de carte de saillance 0-255 en binaire)
+	\begin{tableth}
+	\label{tab:recap:param}
+	\caption[Récapitulatif des paramètres SOM]{Récapitulatif des paramètres SOM}
+	\begin{tabular}{|cc|cc|c|c|c|}
+		\hline
+		Alpha-start	& Alpha-end & Sigma-start & Sigma-end & Époques & Images par séquence & Seuil\\
+		\hline
+		0.5 & 0.06 & 0.4 & 0.001 & 100? & 105 & 10?\\
+		\hline
+	\end{tabular}
+	\end{tableth}
+
 
 	\newpage
 
 	\section{Résultats expérimentaux}
-	\subsection{Evaluation de la qualité de reconstruction}
 
-	Des graphes, pleins de graphes. Et des tableaux. Et des figures.
+	Nous allons dans cette section présenter tous les résultats quantitatifs et visuels que nous avons obtenu avec notre méthode sur CDNET. Cette section est découpée en trois parties. La première présentera l'impact du nombre de neurones et de la taille des imagettes sur les performances et les différences entre les vidéos lorsque l'on fait varier ces paramètres. La seconde présentera les résultats complets sur CDNET et comparera avec l'état de l'art. La troisième présentera visuellement les images que produit notre modèle. La dernière sera consacrée aux discussions et perspectives.
 
-	\subsection{Evaluation de la détection de nouveauté}
+	\subsection{Nombre de neurones et taille des imagettes}
+
+	La taille des imagettes et le nombre de neurones auraient pu faire partie de la section des paramètres. Cependant de par l'importance qu'ils ont sur le résultat et des informations et perspectives qu'ils nous donnent, nous l'avons inclu dans la partie résultat.
+
+	\subsubsection{Baseline}
+
+	\begin{figureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_highway}\caption{Highway}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_office}\caption{Office}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_pedestrians}\caption{Pedestrians}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_PETS2006}\caption{PETS2006}
+		\end{subfigureth}
+		\caption[Fmeasure en fonction du nombre de neurones et de la taille des imagettes, SOM baseline]{Fmeasure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:fmeasure3D-baselineSOM}
+	\end{figureth}
+
+	La figure \ref{fig:res:fmeasure3D-baselineSOM} montre une différence significative de comportement entre les séquences vidéo. La taille des imagettes semble être le facteur le plus important. Pour \textit{Pedestrians} par exemple, une taille d'imagette petite de $8\times8$ donnera les meilleures performances, alors que pour \textit{PETS2006}, ce sont les grosses imagettes de $26\times26$ qui sont optimales. La variabilité est aussi très différente en fonction de la séquence considérée. \textit{Highway} et \textit{Office} sont relativement stables et peu sensibles aux changements de taille d'imagettes et de neurones, tant que ceux-ci ne sont pas trop petits. Au contraire de \textit{PETS2006} pour qui les performances peuvent aller du simple au double en fonction de la taille choisie.
+
+	Pour le nombre de neurones, l'optimal semble toujours être du côté où les cartes sont les plus grandes. Cependant les gains apportés par une carte plus grande sont très variables. Généralement importants au début pour une carte petite, les valeurs atteignent rapidement un plateau et n'améliorent que peu la détection de nouveauté. C'est une information importante pour une détection rapide et efficace, car le nombre de neurones dans la carte est un facteur important du coût en calcul de la SOM.
+
+	\begin{figureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_highway}\caption{Highway}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_office}\caption{Office}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_pedestrians}\caption{Pedestrians}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_PETS2006}\caption{PETS2006}
+		\end{subfigureth}
+		\caption[Fmeasure en fonction du nombre de neurones et de la taille des imagettes, GNG baseline]{Fmeasure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec un GNG. Les GNG n'ayant pas une topologie carrée comme les SOM, il suffit de carrer la taille de la carte pour obtenir le nombre de neurones utilisés par le GNG.}\label{fig:res:fmeasure3D-baselineGNG}
+	\end{figureth}
+
+	Les résultats pour les GNG de la figure \ref{fig:res:fmeasure3D-baselineGNG} montrent un comportement beaucoup plus chaotique. Les variations sont particulièrement grandes entre plusieurs exécutions, mais on peut tout de même discerner les mêmes préférences de tailles d'imagettes que pour les SOM. \textit{Pedestrians} préfère encore des imagettes petites, et \textit{PETS2006} des imagettes grandes. Cela semble indiquer que ces préférences ne sont pas dépendantes des modèles (SOM, GNG) mais bien seulement de la vidéo et/ou de la nouveauté présente dans la vidéo. La valeur des Fmeasure maximales est similaire entre les GNG et les SOM. 
+
+	[figures PSNR]
 	
-	Des graphes, pleins de graphes. Et des tableaux. Et des figures.
+	\subsubsection{Global}
+
+	\begin{figureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/full_som}\caption{SOM}
+		\end{subfigureth}
+		\begin{subfigureth}{.49\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/full_gng_flat}\caption{GNG}
+		\end{subfigureth}
+		\caption[Fmeasure en fonction du nombre de neurones et de la taille des imagettes, global]{Moyenne des Fmeasure en fonction du nombre de neurones et de la taille des imagettes pour l'ensemble des vidéos de notre jeu de données. Le graphe des GNG a été aplati pour que l'on puisse voir l'intégralité de celui-ci.}\label{fig:res:fmeasure3D-global}
+	\end{figureth}
+
+	Lorsque sont aggrégés toutes les séquences vidéos, les graphes de la figure \ref{fig:res:fmeasure3D-global} montrent les tendances globales sur notre modèle. La détection de nouveauté avec la SOM fonctionne le mieux avec des tailles d'imagettes proches de $20\times20$ au delà, les performances stagnent, voire décroissent. Augmenter le nombre de neurones est quand à lui toujours bénéfique, mais amène des gains toujours plus réduits. Les résultats pour les GNG sont plus étranges, car ils sont à leur maximum pour des valeurs intermédaires de neurones et d'imagettes, plus petites que celles de la SOM.
+
+	\subsection{Résultats complets}
+
+	\begin{tableth}
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+		\hline
+		& \multicolumn{3}{c|}{SOM Global} & SOM Max & GNG Global & GNG Max\\
+        \hline
+        \textbf{Categories}/vidéos & Précision & Rappel & Fmeasure & Fmeasure & Fmeasure & Fmeasure\\
+        \hline
+        \textbf{Baseline} & 62.1\% & 63.8\% & 61.5\% & & &\\
+		\hline
+		Highway & 63.5\% & 66.4\% & 64.9\%& & &\\
+		Office & 74.1\% & 61.9\% & 67.5\%& & &\\
+		Pedestrians & 51.0\% & 83.9\% & 63.5\% & & &\\
+		PETS2006 & 59.8\% & 43.1\% & 50.1\% & & &\\
+		\hline
+        \textbf{Bad weather} & 37.1\% & 47.1\% & 40.0\% & & &\\
+		\hline
+		Blizzard & 33.6\% & 40.6\% & 36.7\% & & &\\
+		Skating & 71.6\% & 60.8\% & 65.7\% & & &\\
+		Snowfall & 21.9\% & 45.9\% & 29.6\% & & &\\
+		Wet snow & 21.4\% & 41.1\% & 28.0\% & & &\\
+		\hline
+        \textbf{Camera jitters} & 42.4\% & 55.5\% & 47.1\% & & &\\
+		\hline
+		Badminton & 49.9\% & 72.3\% & 59.0\% & & &\\
+		Boulevard & 52.7\% & 41.8\% & 46.6\% & & &\\
+		Sidewalk & 22.9\% & 33.1\% & 27.1\% & & &\\
+		Traffic & 44.2\% & 74.7\% & 55.5\% & & &\\
+		\hline
+        \textbf{Dynamic bkg} & 10.1\% & 57.8\% & 16.3\% & & &\\
+		\hline
+		Boats & 3.7\% & 70.7\% & 7.0\% & & &\\
+		Canoe & 20.8\% & 89.2\% & 33.7\% & & &\\
+		Fall & 9.3\% & 37.4\% & 14.8\% & & &\\
+		Fountain1 & 1.4\% & 36.7\% & 2.6\% & & &\\
+		Fountain2 & 4.2\% & 45.5\% & 7.7\% & & &\\
+		Overpass & 21.2\% & 66.9\% & 32.2\% & & &\\
+		\hline
+        \textbf{Night videos} & 33.4\% & 40.5\% & 34.2\% & & &\\
+		\hline
+		Bridge entry & 9.7\% & 27.4\% & 14.2\% & & &\\
+		Busy boulevard & 47.3\% & 25.0\% & 32.7\% & & &\\
+		Fluid highway & 21.7\% & 42.6\% & 28.7\% & & &\\
+		Street corner & 46.7\% & 60.2\% & 52.6\% & & &\\
+		Tram station & 44.8\% & 33.8\% & 38.5\% & & &\\
+		Winter street & 30.4\% & 53.7\% & 38.8\% & & &\\
+		\hline
+        \textbf{Shadow} & 51.3\% & 52.1\% & 49.7\% & & &\\
+		\hline
+		Backdoor & 32.4\% & 63.1\% & 42.8\% & & &\\
+		Bungalows & 56.0\% & 39.5\% & 46.3\% & & &\\
+		Bus station & 70.4\% & 60.4\% & 65.0\% & & &\\
+		Copy machine & 79.5\% & 52.4\% & 63.1\% & & &\\
+		Cubicle & 18.3\% & 29.1\% & 22.4\% & & &\\
+		People in shade & 51.5\% & 67.8\% & 58.5\% & & &\\
+		\hline
+        \textbf{Thermal} & 56.1\% & 60.3\% & 55.5\% & & &\\
+		\hline
+		Corridor & 43.1\% & 84.5\% & 57.0\% & & &\\
+		Dining room & 71.6\% & 46.8\% & 56.6\% & & &\\
+		Lakeside & 18.5\% & 38.3\% & 24.9\% & & &\\
+		Library & 88.6\% & 86.2\% & 87.4\% & & &\\
+		Park & 58.6\% & 45.8\% & 51.4\% & & &\\
+		\hline
+        \textbf{Global} & 37.9\% & 54.9\% & 39.8\% & & & \\
+    	\hline
+	\end{tabular}
+	\caption{Résultats complets sur CDNET de notre détection de nouveauté}
+	\label{tab:res:complet1}
+	\end{tableth}
+
+
+	\begin{tableth}
+    \begin{tabular}{|c|c|c|c|c|c|c|}
+		\hline
+		& \multicolumn{3}{c|}{SOM Global} & SOM Max & GNG Global & GNG Max\\
+        \hline
+        \textbf{Categories}/vidéos & Précision & Rappel & Fmeasure & Fmeasure & Fmeasure & Fmeasure\\
+		\hline
+        \textbf{Turbulence} & 10.6\% & 62.5\% & 13.7\% & & &\\
+		\hline
+		Turbulence0 & 2.2\% & 77.1\% & 4.3\% & & &\\
+		Turbulence1 & 8.6\% & 58.5\% & 15.0\% & & &\\
+		Turbulence2 & 1.5\% & 78.4\% & 2.9\% & & &\\
+		Turbulence3 & 30.2\% & 36.0\% & 32.7\% & & &\\
+		\hline
+		\textbf{Inter. motion [r]} & ? & ? & ? & & &\\
+		\hline
+		Street light & ? & ? & ? & & &\\
+		Sofa & ? & ? & ? & & &\\
+		Tramstop & ? & ? & ? & & &\\
+		\hline
+        \textbf{Low framerate [r]} & ? & ? & ? & & &\\
+		\hline
+		Turnpike & ? & ? & ? & & &\\
+		Tram crossroad & ? & ? & ? & & &\\
+		Tunnel exit & ? & ? & ? & & &\\
+        \hline
+        \textbf{Global} & 37.9\% & 54.9\% & 39.8\% & & & \\
+    	\hline
+	\end{tabular}
+	\caption{Résultats complets sur CDNET de notre détection de nouveauté - Suite}
+	\label{tab:res:complet2}
+	\end{tableth}
+
+	Les résultats complets sont présentés dans les tableaux \ref{tab:res:complet1} et \ref{tab:res:complet2}. Les versions \textit{Global} indiquent que l'on a choisi les valeurs de taille de carte et d'imagettes qui étaient optimale sur l'ensemble de CDNET, c'est à dire $20\times20$ pour les tailles de carte et d'imagette pour la SOM et $?\times?$ pour les GNG. Les version \textit{Max} sont celles où on a pris la valeur optimale pour chaque vidéo.
+
+	La première chose que l'on peut remarquer, c'est que pour toutes les catégories, le rappel est toujours meilleur que la précision. Cependant pour 12 vidéos sur 39 (45?), la précision est meilleure. Notre modèle semble donc montrer une préférence pour la sensibilité plutôt que la précision, bien que ce ne soit pas une règle absolue et que cela dépende des séquences évaluées. 
+
+	On peut également remarquer que notre modèle a beaucoup de mal dans les catégories avec un fond dynamique comme \textit{Dynamic background} et \textit{Turbulence} avec des précision ne dépassant pas les 10\%.
+
+	[Ajouter remarques sur Max et GNG une fois que les valeurs seront là]
+
+	\subsubsection{Comparaison avec l'état de l'art}
+
+	CDNET étant un jeu de données très utilisé, il existe de nombreux algorithmes de détection de changement qui ont été testés sur celle-ci. Leur site web\footnote{http://changedetection.net/} référence les résultats obtenus dans la littérature. Ceux-ci sont généralement obtenus en utilisant du post processing pour maximiser les performances. Vu que nous n'en utilisons pas, nous avons choisi de se comparer à \cite{xu2016background}, qui est une review qui reproduit les résultats de méthodes communes de détection de changement, sans pré ni post processing. Nous avons reproduit leurs résultats dans le tableau \ref{tab:res:compare}.
+
+	\begin{tableth}
+    \begin{tabular}{|c|ccc|}
+		\hline
+		Modèle & Précision & Rappel & F-Measure\\
+		\hline
+		SACON & 46.3\% & 38.2\% & 24.0\%\\
+		KDE & 37.6\% & 68.7\% & 40.8\%\\
+		CodeBook & 61.2\% & 38.6\% & 41.1\% \\
+		Vibe & 65.3\% & 46.5\% & 47.2\% \\
+		GMM & 49.9\% & 62.3\% & 47.6\% \\
+		AGMM & 63.4\% & 56.0\% & 53.9\% \\
+		PBAS & 70.9\% & 50.8\% & 55.1\% \\
+		SOBS & 66.7\% & 60.1\% & 56.4\% \\
+		\hline
+		SOM Global & 37.9\% & 54.9\% & 39.8\% \\
+		\hline
+	\end{tabular}
+	\caption{Comparatif avec d'autres modèles de détection de changement sur CDNET}
+	\label{tab:res:compare}
+	\end{tableth}
+
+	Notre méthode est avant dernière en précision, 5\textsuperscript{ième} sur 9 en rappel et avant dernière en F-measure, bien que plus proche des 6 et 7\textsuperscript{ièmes} que du dernier. Les chiffres indiqués ne sont pas non plus directement comparables, car nos valeurs ont été calculés sur une partie seulement de CDNET et pas toutes les vidéos, mais l'ordre de grandeur devrait être environ le même. En comparaison des autres modèles, la précision est le plus gros facteur limitant de notre approche. Il faut aussi remarquer que les modèles utilisés dans cette review sont tous "classiques", et le meilleur algorithme actuel BSUV-Net 2 de \cite{tezcan2021bsuv}, est un réseau de neurones qui obtient 83.9\% en F-measure sur CDNET.
+
+	\subsection{Visualisation des résultats}
+	
+	Dans cette section nous avons regroupé les résultats de détection de notre modèle. La figure \ref{fig:res:visu-baseline} montre les résultats qui ont obtenu un bon score de détection. On peut y voir que le découpage en bloc de la SOM est présent dans le résultat de la détection. Cela peut expliquer en partie le rappel élevé et la précision plus faible car notre modèle aura tendance à déborder au délà de la stricte nouveauté. On remarquera aussi qu'il n'y a pas de bruit dans nos détections. Le découpage entre zone de nouveauté et zone de fond est très net, même si il a quelques erreurs, comme une zone de nouveauté qui n'apparaît pas, ou une zone de fond qui apparaît comme nouveauté.
+
+	\begin{figureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/in001646}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/bin001646}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/gt001646}
+		\end{subfigureth}
+
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/in001840} \caption{Entrée}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/thr001840} \caption{SOM-Global}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/gt001840} \caption{Vérité terrain}
+		\end{subfigureth}
+
+		\caption[]{}\label{fig:res:visu-baseline}
+	\end{figureth}
+
+	La figure \ref{fig:res:visu-dynamic} nous présente des cas de fond dynamiques où notre modèle a eu particulièrement du mal, notamment avec une précision très faible. On peut observer que le mouvement présent dans le fond est confondu avec de la nouveauté. Le mouvement étant permanent, cela cause un nombre très important de faux positifs, ce qui réduit significativement la précision.  
+
+	\begin{figureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/in000912}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/bin000912}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/gt000912}
+		\end{subfigureth}
+
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/in001900} \caption{Entrée}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/thr001900} \caption{SOM-Global}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/gt001900} \caption{Vérité terrain}
+		\end{subfigureth}
+
+		\caption[]{}\label{fig:res:visu-dynamic}
+	\end{figureth}
 
 	\subsection{Interprétations}
+
+	
 
 	Mauvaise généralisation qui empêche la caméra en mouvement. La compression est différente du tracking (meilleure compression != meilleur tracking). Problème de distances pour l'apprentissage pour correctement représenter les images.
 

@@ -33,12 +33,25 @@
 
 \subsection{L'inspiration biologique}
 
+	Depuis l'avènement des semiconducteurs, la puissance computationelle disponible n'a cessé de s'acroître exponentiellement. La célèbre prophécie auto-réalisatrice de Gordon Moore, que le nombre de transistor par processeur double tous les deux ans, a fait progresser l'industrie pour lui faire atteindre le million de transistor par puce à l'aube des années 1990, et le milliard en 2006. Au moment de la rédaction de ce manuscrit, la plus grosse puce est le processeur A100 à 54 milliards de transistors\footnote{https://en.wikipedia.org/wiki/Ampere\_(microarchitecture)}.
+
+	Cette progression cache cependant des difficultés pour utiliser efficacement tous ces milliards de transistors. L'architecture de Von Neumann qui sert de modèle depuis les années 50 à quasiment tous les ordinateurs est le point blocant des processeurs. La séparation de la mémoire et du CPU place le bus de données entre les deux comme le centre névralgique de l'ordinateur et sa vitesse est limitée. Ce problème est compensé en partie dans les processeurs modernes avec l'utilisation de cache, mais ce n'est qu'une solution d'appoint qui ne tient pas la mise à l'échelle, car les tailles de cache resterons toujours très inférieurs à la mémoire vive. Un second problème, plus important encore, est la limite des performances séquentielles des CPU. 
 	
+	L'informatique a, dès la machine de Turing, été séquentielle et les algorithmes et processeurs se sont développés dans ce paradigme séquentiel. Cela n'a pas posé de problèmes tant que les fréquences augmentaient et que la finesse de gravure se réduisait. Mais un mur de fréquence a été atteint dans les années 2000, dû aux coût energétiques et à la chaleur engendrée par des fréquences trop élevées. Depuis les processeurs grand public ont rarement dépassé les 5 Ghz. Cette limite aux performances séquentielles des CPU combiné à la croissance exponentielle du nombre de transistor ont naturellement amené vers le développement d'architectures multi-coeurs, qui ont nécessité un développement plus poussé vers le parallelisme tant au niveau matériel qu'algorithmique. C'est ce parallélisme qui a été le catalyseur pour le développement des réseaux de neurones, particulièrement bien parallélisables. La limite de l'architecture de von Neumann elle, reste présente. Lors de l'apprentissage d'un réseau de neurones avec de multiples GPU, la mémoire de ceux-ci doit être dupliquée dans chaque carte, et synchronisée régulièrement, si bien que la taille de ces réseaux de neurones est ultimement limitée par la mémoire vive du plus petit GPU. La piste que nous avons choisi pour résoudre ce problème, est de s'inspirer de la machine la plus efficace pour traiter de l'information que nous connaissons : le cerveau. 
+
+	Le cerveau est une machinerie complexe composé d'environ de 170 milliards de cellules chez l'humain, dont la moitié environ sont des neurones, le reste des cellules gliales. C'est un ordre de grandeur similaire au nombre de transistors dans un circuit imprimé récent, mais il y existe tout de même des différences importantes entre les deux. Un neurone est capable d'effectuer des opérations beaucoup plus complexes qu'un transistor. Il est également beaucoup plus grand, de l'ordre du micromètre, alors que les transistors ne font que quelques nanomètres. Ce qui explique en partie la différence de taille. Un cerveau humain occupe un volume d'environ 1200 cm\textsuperscript{3}, avec de grandes variations entre les genres et les individus. Les puces informatiques se contentent de deux dimensions et s'étalent sur une petite surface en comparaison, soit 826mm\textsuperscript{2} pour la plus grande. En supposant une épaisseur de 5mm, on obtient un volume de 4,13 cm\textsuperscript{3}. Ces comparaisons semblent indiquer que le nombre de transistors disponible n'est pas un facteur limitant pour le développement de modèles informatiques plus proches des capacités de raisonnement humaines.
+
+	La différence d'organisation entre un cerveau et un processeur est cependant majeure. Un cerveau fonctionne de façon analogique, évènementiel et asynchrone alors qu'un processeur actuel fonctionne en états discrets (généralement binaire) et synchronisé sur une horloge globale, propre à chaque processeur. Les informations dans le cervau circulent de façon locales entre neurones voisins et avec très peu de connexions longues distance. Un processeur est plutôt une chaine d'assemblage, où toute l'information circule dans un seul sens. La "mémoire vive" dans le cerveau est gérée localement, en modifiant la chimie neuronale avec des neurotransmetteurs, en modifiant les connexions synaptiques voire même avec de la neurogénèse. Pour une machine de von Neumann, les deux sont complètement distincts, et un circuit \textit{Full Adder} fera aussi bien de la cryptographie que du jeu vidéo ou de compiler le code \LaTeX de ce manuscrit. Ces différences sont, de notre point de vue, fondamentales dans ce qui nous sépare des performances et de l'efficacité d'un cerveau humain.
+
+	Récemment, une nouvelle génération de puces appelées "neuromorphiques" a vu le jour chez les fabricants de processeurs. Notamment Loihi\footnote{https://en.wikichip.org/wiki/intel/loihi} d'Intel, ou TrueNorth\footnote{https://www.research.ibm.com/articles/brain-chip.shtml} d'IBM. Ces circuits reprennent des propriétés cérébrales que nous avons évoqués, et comme attendu, la mise à l'échelle de ce genre d'architecture se fait aisément. Intel par exemple le démontre avec ses puces Loihi. Chacune d'entre elle comprend 131 072 neurones, et 10 fois plus de synapes. Une fois combinées par 32 sur une carte \textit{Nahuku} on obtient un système neuromorphique à 4 millions de neurones. Combinez encore ces cartes dans un système plus grand et vous avez \textit{Pohoiki Springs} et ses 100 millions de neurones distribués sur 768 puces. Une question reste cependant ouverte : comment utiliser efficacement toute cette puissance de calcul neuronal ?
 
 \subsection{L'émergence}
+
+	
+
 \subsection{Particularités de la vision}
-\subsection{Cortex visuel humain}
 \subsection{Méthodes classiques informatiques}
+\subsection{Vision humaine}
 
 \newpage
 \section{Réseaux neuronaux}
@@ -170,11 +183,6 @@ $$u(x, t+\Delta t) = u(x, t) +\frac{\Delta t\left(-u(x, t)+\sum u(x', t)\omega(|
 $\Delta t$ is the time step between two estimations, it can be the same for all neurons (synchronous) or different each time (asynchronous). It should be noted that in the original DNF formula, there are more parameters such as resting potential but since we do not use them here, we did not mention them.
 
 It is often difficult to understand how a DNF will behave just from the formula. We have set it up with optimized parameters in order to have a winner-takes-all behaviour where the most prominent and spatially coherent features in the input map create a local bubble of activation in the neural map and suppress the ability of other such bubbles to appear elsewhere in the map. 
-
-\newpage
-\section{Matériel Neuromorphique}
-\subsection{Processeurs}
-\subsection{Caméra évènementielles}
 
 \bibliographystyle{francaissc}
 \bibliography{Chapitre1/Biblio}

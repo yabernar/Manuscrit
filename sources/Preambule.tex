@@ -32,6 +32,7 @@
 
 %% Réglage des fontes et typo    
 \usepackage[utf8]{inputenc}		% LaTeX, comprend les accents !
+\usepackage[sfdefault,light]{roboto}  %% Option 'sfdefault' only if the base font of the document is to be sans serif
 \usepackage[T1]{fontenc}
 
 \usepackage[square,sort&compress,sectionbib]{natbib}		% Doit être chargé avant babel
@@ -55,6 +56,8 @@
 \usepackage[francais,nohints]{minitoc}		% Mini table des matières, en français
 	\setcounter{minitocdepth}{2}	% Mini-toc détaillées (sections/sous-sections)
 \usepackage[notbib]{tocbibind}		% Ajoute les Tables	des Matières/Figures/Tableaux à la table des matières
+
+\usepackage[indent=2em]{parskip}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Maths                         
