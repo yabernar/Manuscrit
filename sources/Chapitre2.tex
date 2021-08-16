@@ -458,7 +458,7 @@
 
 	\subsubsection{Optimisation d'$\alpha$ et de $\sigma$}
 
-	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur des vidéos de la \textit{baseline}. Nous avons fait plus de 1000 mesures par vidéo, avec pour chaque mesure, la moyenne de 8 exécutions pour réduire le bruit statistique. La figure \ref{fig:params:sigopt} explique le choix de $\sigma$ que nous avons fait commencé à 0.4 et finir à 0.001. Puis nous avons relancé une optimisation pour les valeurs d'alpha uniquement pour mieux observer les tendances avec les valeurs fixées de $\sigma$. La figure \ref{fig:params:alphaopt} présente ces résultats. Nous avons choisi pour $\alpha$ un départ à 0.5 et de finir à 0.06.
+	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur des vidéos de la \textit{baseline}. Nous avons fait plus de 1000 mesures par vidéo, avec pour chaque mesure, la moyenne de 8 exécutions, deux pour chaque vidéo, pour réduire le bruit statistique. La figure \ref{fig:params:sigopt} explique le choix de $\sigma$ que nous avons fait commencé à 0.7 et finir à 0.015. Puis nous avons relancé une optimisation pour les valeurs d'alpha uniquement pour mieux observer les tendances avec les valeurs fixées de $\sigma$. La figure \ref{fig:params:alphaopt} présente ces résultats. Nous avons choisi pour $\alpha$ un départ à 0.5 et de finir à 0.06.
 
 	Nous pouvons aussi noter l'ordre d'importance des paramètres par leur impact sur le résultat : $\textit{Sigma end} > \textit{Sigma start} > \textit{Alpha end} > \textit{Alpha start}$.
 
@@ -469,9 +469,9 @@
 		\begin{subfigureth}{.75\textwidth}
 			\includegraphics[width=\linewidth]{parameters/sigma_start}	
 		\end{subfigureth}
-		\caption[Optimisation de $\sigma$]{Le premier paramètre qui a une valeur optimale évidente est \textit{Sigma end}, où une petite valeur proche de zéro semble idéale. Cela s'explique facilement du fait qu'une valeur faible de \textit{Sigma end} induit que lors des dernières époques la SOM va se focaliser sur l'optimisation de la quantification vectorielle au dépend de la topologie, pour obtenir des neurones les plus proches possibles des imagettes qu'ils représentent. Les quelques outliers très élevés que l'on peut observer avec une \textit{Sigma end} faible sont dû à des valeurs de \textit{Sigma start} proches de 0 également, et qui par conséquent n'ont aucun apprentissage topologique, ce qui réduit significativement les performances.\\
+		\caption[Optimisation de $\sigma$]{Le premier paramètre qui a une valeur optimale évidente est \textit{Sigma end}, où une petite valeur proche de zéro semble idéale. Cela s'explique facilement du fait qu'une valeur faible de \textit{Sigma end} induit que lors des dernières époques la SOM va se focaliser sur l'optimisation de la quantification vectorielle au dépend de la topologie, pour obtenir des neurones les plus proches possibles des imagettes qu'ils représentent.\\
 		
-		Le second graphique représente un sous échantillon d'expériences sélectionnés avec une valeur de \textit{Sigma end} inférieure à 0.05. En affichant les résultats en fonction de \textit{Sigma start}, on observe une légère préférence pour des valeurs de \textit{Sigma start} intermédiaires, c'est à dire dans les alentours de 0.4.}\label{fig:params:sigopt}
+		Le second graphique représente un sous échantillon d'expériences sélectionnés avec une valeur de \textit{Sigma end} inférieure à 0.05. En affichant les résultats en fonction de \textit{Sigma start}, on observe une légère préférence pour des valeurs de \textit{Sigma start} assez élevées, c'est à dire dans les alentours de 0.7.}\label{fig:params:sigopt}
 	\end{figureth}
 
 
@@ -507,9 +507,9 @@
 	\caption[Récapitulatif des paramètres SOM]{Récapitulatif des paramètres SOM}
 	\begin{tabular}{|cc|cc|c|c|c|}
 		\hline
-		Alpha-start	& Alpha-end & Sigma-start & Sigma-end & Époques & Images par séquence & Seuil\\
+		$\alpha$-start	& $\alpha$-end & $\sigma$-start & $\sigma$-end & Époques & Images par séquence & Seuil\\
 		\hline
-		0.5 & 0.06 & 0.4 & 0.001 & 100? & 105 & 10?\\
+		0.2 & 0.05 & 0.7 & 0.015 & 100? & 105 & 10?\\
 		\hline
 	\end{tabular}
 	\end{tableth}

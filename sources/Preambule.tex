@@ -32,7 +32,7 @@
 
 %% Réglage des fontes et typo    
 \usepackage[utf8]{inputenc}		% LaTeX, comprend les accents !
-\usepackage[sfdefault,light]{roboto}  %% Option 'sfdefault' only if the base font of the document is to be sans serif
+\usepackage[sfdefault, light]{roboto}  %% Option 'sfdefault' only if the base font of the document is to be sans serif
 \usepackage[T1]{fontenc}
 
 \usepackage[square,sort&compress,sectionbib]{natbib}		% Doit être chargé avant babel
@@ -106,16 +106,21 @@
 \usepackage{xspace}
 
 %% AJOUTS PERSOS
+\providecommand*\lseries{\fontseries{l}\selectfont}
 \usepackage{siunitx}
 \sisetup{output-exponent-marker=\ensuremath{\mathrm{e}}, mode=text, detect-weight, locale = FR, inter-unit-separator=$\cdot$,range-phrase=~\`{a}~,range-units=single}
 \newcommand{\bst}[1]{\bfseries $\num{#1}$}
 \newcommand{\nbr}[1]{$\num{#1}$}
 
-
 \usepackage[version=3]{mhchem}	% Equations chimiques
 \usepackage{textcomp}
 \usepackage{array}
 \usepackage{hyphenat}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{svg}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Navigation dans le document

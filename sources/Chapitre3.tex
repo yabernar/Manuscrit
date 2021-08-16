@@ -1,0 +1,75 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%									Chapitre 3												%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Vision événementielle et attention}
+	\citationChap{
+		On ne voit que ce que l'on regarde.
+	}{Maurice Merleau-Ponty}
+	\minitoc
+	\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+% Début du chapitre			
+	\section{Introduction}
+	\section{Détection de mouvements}
+
+	Le rôle de la première couche pour traiter les événements de la caméra sera de transformer les informations ponctuelles dans le temps et l'espace qu'envoie la caméra en zones de mouvements continues, facilitant le travail des couches supérieures. Pour ce faire, nous utiliserons des DNF, particulièrement appropriés par leur capacité d'intégration de l'information, et de leur robustesse au bruit très présent dans ce type de caméra. Habituellement, on utilise des DNF à deux dimensions pour gérer des images. Cependant cela représente 307 200 neurones avec notre caméra 640$\times$480, tous connectés dépendants les uns des autres, et devant être recalculés à chaque itération. Nous souhaitons que la première couche soit simple et rapide, alors nous avons choisi d'utiliser deux DNF à 1 dimension, un pour chaque axe.
+
+
+
+	\begin{figureth}
+		\begin{subfigureth}{\textwidth}
+			\includegraphics[width=\linewidth]{tracking/plane}
+		\end{subfigureth}
+		\caption[Détection de mouvements avec DNF sur caméra événementielle]{Détection de mouvements avec DNF sur caméra événementielle. Les points verts et rouges dans l'image correspondent respectivement aux augmentations et réductions de luminosités détectés par la caméra. La somme des événements de chaque axe est affichée dans les courbes bleues qui sont en entrée des deux DNF. En orange sont les potentiels des DNF. On calcule le produit dyadique de la sortie des DNF, c'est à dire après la sigmoïde, pour obtenir la zone de détection de mouvement en bleu sur l'image.}\label{fig:track:plane}
+	\end{figureth}
+
+	Les DNF peuvent fonctionner à la fois en mode impulsionnel et en mode discrétisé. Nous avons choisi le second mode, car il est plus rapide à calculer et plus stable. Sa vitesse ne dépend pas du nombre d'événements à traiter, contrairement au modèle impulsionnel. Il nous a donc fallu intégrer les évènements avec un pas de temps que nous avons mis à 10 ms. Il est aussi possible de le placer à 1 ms ou en dessous, si l'on souhaite détecter des mouvements très rapides. Il y aura juste plus de mises à jour par seconde des potentiels du DNF, et donc plus de calculs. Nous n'avons pas utilisé la polarité des évènements, uniquement si un pixel détectait un changement ou pas.
+
+	Les événements que nous recevons de la caméras sont très bruités. Il existe notamment certains pixels défectueux qui envoient en permanence des événements. Il s'agit de bruit artificiel dû à la technologie et non présent dans la nature. Il n'est donc pas particulièrement intéressant pour nous de l'inclure dans notre étude. Nous avons donc désactivé logiciellement ces pixels défectueux. Le bruit présent dans la nature et plus diffus, a lui été conservé. Le résultat est présenté sur la figure \ref{fig:track:plane}.
+
+	\subsection{Multi cibles}
+
+	\begin{figureth}
+		\begin{subfigureth}{\textwidth}
+			\includegraphics[width=\linewidth]{tracking/walk_with_contours}
+		\end{subfigureth}
+		\caption[Détection de mouvements multicible avec DNF sur caméra événementielle]{Détection multicible. Il y a deux stimulus dans la scène, entourés par des lignes vertes. La personne qui se déplace en bas à droite et un mouvement dans un arbre en haut à gauche. Les activations parasites, dû à la projection de deux détections en 1D vers du 2D sont entourés par des pointillés orange.}\label{fig:track:multi}
+	\end{figureth}
+
+	Notre système est également capable de suivre de multiples cibles, mais au prix de détections parasites. En effet, passer de 2 dimensions à 2 fois 1 dimension pour ensuite projeter à nouveau en 2 dimensions est efficace en calculs, mais il y a une perte d'informations dans le processus. Lorsque l'on passe en 1 dimensions, on ne connaît que les valeurs sur chaque axe des deux stimulus, sans pouvoir les associer entre elles. Un exemple est présenté sur la figure \ref{fig:track:multi}.
+
+	\subsection{Paramètres}
+
+	Le paramétrage de DNF est une tâche délicate. Nous avons ajusté à la main les valeurs de chaque paramètre à l'aide de nos connaissances sur ces modèles. Bien que nous n'ayons pas beaucoup modifiés les paramètres entre les deux exemples que nous avons présentés, il est possible qu'une séquence nouvelle ne fonctionne pas avec les paramètres que nous avons sélectionnés, et qu'il faille reparamétrer les DNF pour que cela fonctionne comme attendu. Les deux DNF de chaque axe utilisent les mêmes paramètres. Chaque événement compte pour 0.2 dans l'entrée des DNF pour une meilleure visualisation sur les figures, car mettre cette valeur à 1 et diviser le gain par 5 aurait eu le même effet sur le DNF.
+
+
+	\begin{tableth}
+	\label{tab:recap:param}
+	\caption[Paramètres DNF 1D]{Paramètres DNF 1D}
+	\begin{tabular}{|c|cc|}
+		\hline
+		Paramètre & Figure \ref{fig:track:plane} & Figure \ref{fig:track:multi}\\
+		\hline
+		$\delta$t & 0.01 & 0.01\\
+		$\tau$ & 0.05 & 0.05\\
+		Coef. excitateur & 4.5 & 4.5\\
+		$\sigma$ excitateur & 0.01 & 0.01\\
+		Gain & 4 & 1.5\\
+		Repos $h$ & -3 & -3\\
+		\hline
+	\end{tabular}
+	\end{tableth}
+
+	\newpage
+
+	\section{Mécanisme attentionnel}
+	\section{Combinaison avec la détection de nouveauté}
+	\section{Conclusion}
+		
+\bibliographystyle{francaissc}
+\bibliography{Chapitre3/Biblio}
