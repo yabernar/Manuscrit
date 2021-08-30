@@ -31,18 +31,47 @@
 %including various datasets and the definition of the associated performance measures. 
 	and the corresponding results are discussed in section \ref{seq:results}.
 
+	We present here our new algorithm for searching the Best Matching Unit (BMU) in the SOM. It is traditionally determined by means of an exhaustive search by comparing all the distances between the input vector and the neurons weights. This method, while able to always find the correct minimum of the map, is computationally inefficient. The dimensionality reduction property of the SOM means that close neurons in the SOM topology represent close vectors in the input space. Therefore when an input vector is presented to the SOM, a pseudo-continuous gradient appears in the SOM when considering the distances between the neuron weights and the input vector whose minimum is located at the BMU. Using some kind of discretized gradient descent approach, we expect that this distance will progressively reduce until the Best Matching Unit is reached, with the minimal distance in the map. 
 
 	\section{Observations topologiques}
 	\newpage
-	\section{Algorithme séquentiel}
-	\subsection{Algorithme}
 
-	We present here our new algorithm for searching the Best Matching Unit (BMU) in the SOM. It is traditionally determined by means of an exhaustive search by comparing all the distances between the input vector and the neurons weights. This method, while able to always find the correct minimum of the map, is computationally inefficient. The dimensionality reduction property of the SOM means that close neurons in the SOM topology represent close vectors in the input space. Therefore when an input vector is presented to the SOM, a pseudo-continuous gradient appears in the SOM when considering the distances between the neuron weights and the input vector whose minimum is located at the BMU. 
-	%Using some kind of discretized gradient descent approach, we expect that this distance will progressively reduce until the Best Matching Unit is reached, with the minimal distance in the map. 
+	\section{Algorithme séquentiel}
+
+	Pour bien comprendre le fonctionnement de notre algorithme Fast-BMU, nous allons le présenter partie par partie. Nous commencerons par l'idée générale de la descente du gradient de la SOM. Puis nous aborderons les cas spéciaux en expliquant pourquoi ils existent, les conséquences possibles et comment Fast-BMU les résoud.  
+
+	\begin{algorithm}[tb]
+	\caption{FastBMU}
+	\label{fast:alg:bmu}
+	\textbf{Entrée}: \\
+	{\tt vector} : vecteur d'entrée\\
+	{\tt w, h}: largeur et hauteur de la SOM\\
+	\textbf{Variables}: \\
+	{\tt dist\_memory}: historique des distances déjà évaluées\\
+	{\tt positions}: positions de départ des particules\\
+	\textbf{Sortie}: \\
+	{\tt bmu} : index de la Best Matching Unit
+	\begin{algorithmic}[1] %[1] enables line numbers
+	\STATE {\tt dist\_memory} $\xleftarrow{}$ None
+	\STATE {\tt positions} $\xleftarrow{}$ [(0,0), (w-1, 0), (0, h-1), (w-1, h-1)]
+	\STATE {\tt bmu} $\xleftarrow{}$ None
+
+	\STATE
+	\IF {$eval(pos)$ is True}
+	\STATE \textbf{return} $pos$
+	\ENDIF
+	\STATE $eval[pos] \xleftarrow{}$ True
+	\STATE Let $new\_pos$ take the index of the closest not evaluated neighbour to the input vector (ignoring neighbours $p$ such that $eval(p)=$True)
+	\IF {$values[new\_pos] \leq values[pos]$}
+	\STATE \textbf{return} Particle($new\_pos$)
+	\ENDIF
+	\STATE \textbf{return} The index of the smallest value between $pos$ and the returned indexes by execution of Particle() on all direct neighbours of $pos$.
+	\end{algorithmic}
+	\end{algorithm}
 
 	\begin{algorithm}[tb]
 	\caption{Particle}
-	\label{alg:particle}
+	\label{fast:alg:particle}
 	\textbf{Input}: $pos$ : current position\\
 	\textbf{Parameters}: $values$: global table of distances, $eval$: global history of evaluations \\
 	\textbf{Output}: $bmu$ : best matching unit's index
@@ -58,6 +87,14 @@
 	\STATE \textbf{return} The index of the smallest value between $pos$ and the returned indexes by execution of Particle() on all direct neighbours of $pos$.
 	\end{algorithmic}
 	\end{algorithm}
+
+	La partie 
+
+
+	Dans notre algorithme, nous utilisons cette réduction progressive des distances pour effectuer une descente de gradient discrétisée afin de trouver la meilleure unité de correspondance. Le pseudo-code est présenté dans l'Algorithme \ref{fast:alg:particle}, et illustré dans la figure \ref{fig:first_particle} (à gauche). L'algorithme commence à une position choisie arbitrairement dans la carte. Pour cet exemple, considérons qu'il commence aux coordonnées $(0,0)$ (coin supérieur gauche). Ce neurone a deux voisins, un à l'est (1,0) et un au sud (0,1). Nous évaluons les distances au vecteur d'entrée de ces trois neurones pour trouver la prochaine étape de la descente du gradient. Si la plus petite distance est trouvée là où nous sommes actuellement positionnés, alors nous considérons qu'il s'agit d'un minimum local. Au contraire, si l'un des neurones voisins donne la plus petite distance, alors la descente du gradient va dans la direction de ce neurone particulier, qui devient la prochaine position sélectionnée à partir de laquelle nous répétons ce processus jusqu'à ce que nous trouvions un minimum local. Dans notre exemple, la plus petite distance est mesurée pour le neurone oriental en (1,0). Le processus de recherche se déplace donc d'un pas vers l'est, et ce neurone a trois voisins, un au sud (1,1), un à l'est (2,0) et un à l'ouest dont nous venons (et que nous ignorons donc). Nous comparons à nouveau les trois distances et nous nous déplaçons vers la distance la plus faible (sud).
+
+	Ce processus itère jusqu'à atteindre un minimum local à la position (6,5), où tous les neurones voisins ont une distance au vecteur d'entrée plus élevée que le neurone sélectionné. Afin de s'assurer que le minimum local qui a été trouvé est le meilleur dans le voisinage local, nous effectuons ensuite une recherche de l'espace local en continuant la descente du gradient à partir de tous les neurones directement voisins qui sont encore inexplorés. Si cette recherche trouve un meilleur minimum local, alors ce minimum local est considéré comme le BMU. Cette partie de l'algorithme vise à contourner les problèmes qui peuvent découler de la topologie. Dans une topologie de grille par exemple, nous ne pouvons regarder que les axes orthogonaux. Mais parfois, le gradient est orienté vers une direction diagonale, et en étendant la recherche à partir d'un minimum local, nous sommes en mesure de suivre ce gradient vers un BMU potentiel.
+
 
 	In our algorithm we use this progressive reduction of distances to perform a discretized gradient descent to find the Best Matching Unit. The pseudo-code is shown in Algorithm \ref{alg:particle}, and illustrated in figure \ref{fig:first_particle} (left). The algorithm starts at an arbitrarily selected position in the map. For this example let us consider that it starts at coordinates $(0,0)$ (top left corner). This neuron has two neighbours, one to the east (1,0) and one to the south (0,1). We evaluate the distances to the input vector of these three neurons to find the next step in the gradient descent. If the smallest distance is found where we are currently positioned, then we consider this is a local minimum. On the contrary if one of the neighbouring neurons gives the smallest distance, then the gradient descent goes in the direction of this particular neuron, that becomes the next selected position from which we repeat this process until we find a local minimum. In our example the smallest distance is measured for the eastern neuron in (1,0). Thus the search process moves one step to the east, and this neuron has three neighbours, one to the south (1,1), one to the east (2,0) and one to the west that we come from (and thus we ignore it). We compare the three distances again, and move towards the lowest distance (south).
 
@@ -77,36 +114,34 @@
 
 	Le temps d'exécution d'une recherche de BMU dans la SOM classique dépend de deux facteurs : le nombre de neurones multiplié par la durée d'une comparaison entre le vecteur d'entrée et les poids d'un neurone. L'idée de Fast-BMU étant de réduire le nombre de ces comparaisons, la durée d'une comparaison ne sera pas prise en compte dans cette analyse. C'est normalement une valeur constante qui ne dépend que de la dimensionalité des données. Le nombre de comparaisons pour Fast-BMU est quand à lui dépendant de la taille de la carte, c'est à dire hauteur et largeur, et de la topologie, c'est à dire du nombre de voisins par neurone. 
 
-	Étant donné que notre algorithme ne fonctionne que si 
+	Nous ferons dans cette analyse l'hypothèse qu'il y a une certaine continuité dans la carte et qu'en partant de n'importe quel point de la carte, on atteigne la BMU en suivant le gradient. C'est une hypothèse forte, mais qui doit être vraie pour que notre algorithme de Fast-BMU fonctionne. En pratique, Fast-BMU est plus robuste que cela, et n'a pas besoin que tous les gradients de la carte mènent à la BMU, il en faut juste assez pour qu'une \textit{particule} la trouve. De plus, les problèmes les plus communs dans le gradient de la carte sont des minimums locaux, qui réduisent le nombre de \textit{pas} en arrêtant la \textit{particule} avant la fin. Pour augmenter le nombre de pas effectués par une particule, il faudrait un gradient qui prenne une direction à l'opposé de ce qu'il avait précédemment. Qu'il fasse des méandres sur son trajet par exemple, ce qui est inhabituel dans des SOM en général. Ainsi, la complexité que nous allons calculer sera probablement une limite haute à la vraie complexité de l'algorithme Fast-BMU. 
 
-As our algorithm relies on the dimensionality reduction property of the SOM, we will hypothesise that there is always some kind of continuity in the neural map in our analysis, because if not, our algorithm would not work anyways.
-
-	In order to estimate the complexity of our algorithm, we have to estimate the number of steps that each of the four particles takes before finding a potential Best Matching Unit (BMU). We assume that: 1) all particles follow paths that do not significantly differ from shortest XY paths until their destination (thus minimizing the number of steps), and 2) they do not stop early in some local minimum (thus maximizing the number of steps). We will call this kind of  best-worst-case complexity: \textit{Expected Complexity}.
-
-	Let us consider that the BMU is located at position $x, y$ of the SOM : 
+	Pour estimer la complexité de notre algorithme, c'est à dire le nombre de comparaisons dans notre cas, nous devons estimer le nombre de \textit{pas} de chaque particule pour trouver la BMU potentielle. En considérant que la BMU est localisée à la position $x, y$ de la SOM, on a :
 	\begin{itemize}
-    	\item The top left particle with coordinates $(0,0)$ needs $x$ steps in the width dimension, and $y$ steps in the height dimension in order to get to the BMU.
-    	\item Similarly, the top right particle with coordinates $(w,0)$ will take $w-x$ steps for the width and $y$ steps for the height.
-    	\item For the bottom left $(0,h)$, it will be $x$ and $h-y$ steps.
-    	\item For the bottom right $(w,h)$, it will be $w-x$ and $h-y$ steps.
+    	\item La \textit{particule} en haut à gauche commençant aux coordonnées $0, 0$ devra faire $x$ \textit{pas} horizontaux et $y$ \textit{pas} verticaux pour atteindre la BMU.
+		\item De la même façon, la \textit{particule} du haut à droite avec les coordonnées $(w,0)$ devra faire $w-x$ \textit{pas} horizontaux et $y$ pas verticaux.
+		\item Pour la \textit{particule} en bas à gauche $(0,h)$, ce sera $x$ et $h-y$ \textit{pas}.
+		\item Pour la \textit{particule} en bas à droite $(w,h)$, ce sera $w-x$ et $h-y$ \textit{pas}.
 	\end{itemize}
 
-	To get the total number of steps for one execution, we sum the steps from all particles together as shown in equation \ref{eq:nbsteps}:
-	\begin{align}\label{eq:nbsteps}
-    	\text{NbSteps} = (x + y) + (w - x + y) + (x + h - y) + (w - x + h - y) 
+	Pour obtenir le nombre total de \textit{pas} pour une itération, nous additionons les nombres de pas de toutes les particules ensemble comme montré dans l'équation \ref{fast:eq:nbsteps}.
+
+	\begin{equation}\label{fast:eq:nbsteps}
+	\begin{split}
+    	\text{NbrPas} &= (x + y) + (w - x + y) + (x + h - y) + (w - x + h - y)\\
+		&= 2x - 2x + 2y - 2y + 2w + 2h 
+	\end{split}
+	\end{equation}
+
+	Les $x$ et $y$ s'annulant, le nombre total de pas ne dépend donc que de la largeur et la hauteur de la carte, soit $(2w + 2h)$. On peut donc en déduire la Complexité Estimée $\cal C$ avec l'équation \ref{fast:eq:complexity}
+
+	\begin{align}\label{fast:eq:complexity}
+    	{\cal C}(w, h) = 2 \times (w + h) \times \textit{NbrEvalParPas}
 	\end{align}
 
-	The $x$ and $y$ cancel out, and the resulting number of steps only depends on the width and the height of the map. The total number of steps taken by our algorithm is consequently equal to $(2w + 2h)$. 
-	% Each particle therefore has an average number of steps equal to $\frac{(w+h)}{2}$ in our case. 
-	We can therefore derive equation \ref{eq:complexity}, which defines the expected complexity of our algorithm.
+	avec $w, h$ la largeur et la hauteur de la SOM respectivement et \textit{NbrEvalParPas} le nombre de nouvelles distances à calculer pour chaque \textit{pas} d'une particule. Sa valeur dépend de la topologie. Elle est au maximum de 3 avec une grille (4 voisins moins le neurone de l'étape précédente) et également de 3 avec une topologie hexagonale (6 voisins moins le neurone de l'étape précédente et 2 neurones qui étaient voisins du neurone précédent et qui ont donc déjà été évalués). 
 
-	\begin{align}\label{eq:complexity}
-    	{\cal EC}(w, h) = 2 \times (w + h) \times NbrEvalPerStep
-	\end{align}
-
-	with $w, h$ the width and height of the SOM respectively and $NbrEvalPerStep$ the number of new distances to compute on each step of a particle. Its value depends on the topology. It is at most 3 with a grid (4 neighbours minus the neuron from the previous step) and also 3 with a hexagonal topology (6 neighbours minus the neuron from the previous step and 2 neurons that were neighbours of the previous neuron and consequently have already been evaluated). 
-
-	From an analytical point of view, we can estimate that our Fast-BMU algorithm (${\cal EC}(w,h)=6(w+h)$ in the worst case in a standard grid configuration) is significantly faster than the current exhaustive search algorithm (O$(w,h) = wh$) when the number of neurons in the map is substantial. For instance, it is twice as fast with 24 by 24 SOMs, and 10 times faster with 120 by 120 SOMs. An experimental evaluation of the speed difference is reported in section \ref{seq:results}.
+	D'un point de vue analytique, nous pouvons estimer que notre algorithme Fast-BMU (${\cal C}(w,h)=6(w+h)$ dans le pire des cas dans une configuration de grille standard) est significativement plus rapide que l'algorithme actuel de recherche exhaustive (O$(w,h) = wh$) lorsque le nombre de neurones dans la carte est important. Par exemple, il est théoriquement deux fois plus rapide avec des SOM de 24 par 24, et 10 fois plus rapide avec des SOM de 120 par 120. Une évaluation expérimentale de la différence de vitesse est présentée dans la section \ref{fast:seq:gain_comput}.
 
 	\subsection{Protocole expérimental}
 
@@ -186,7 +221,7 @@ As our algorithm relies on the dimensionality reduction property of the SOM, we 
 
 	For the vector quantization part, the hexagonal topology leads again to the lowest error values. What is more surprising is that the Fast-BMU version has quantization results that are very similar to the standard version. Even with high mismatches (30\% with Digits using a grid-based SOM) the MSQE is only around 5\% higher, and even less when only training is compared. The only significantly higher MSQE values with Fast-BMU is with the Cube dataset where the algorithm selects quite bad BMU choices in the recall phase while being able to correctly train the SOM. In most cases, a difference in the topology of the SOM has more impact on the resulting MSQE than the use of the Fast-BMU algorithm. 
 
-	\subsubsection{Gain computationnels}
+	\subsubsection{Gain computationnels}\label{fast:seq:gain_comput}
 
 	\begin{figureth}
     	\centering
