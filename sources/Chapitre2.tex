@@ -489,7 +489,13 @@
 
 	\subsubsection{Durée de l'apprentissage}
 
-	Graph incoming !
+	Le dernier paramètre des SOM qu'il reste à optimiser est le nombre d'époques. Une époque étant un parcours complet de la base d'apprentissage, ce paramètre doit être juste assez élevé pour que la SOM converge vers un résultat et assez bas pour que l'apprentissage ne soit pas trop long. La durée de celui-ci étant directement proportionnel au nombre d'époques. Le résultat de nos tests est montré figure \ref{fig:params:nbepochs}.
+
+	\begin{figureth}
+		\includegraphics[width=\linewidth]{parameters/number_epochs}
+		\caption[Nombre d'époques]{F-measure en fonction du nombre d'époques sur la \textit{baseline}. Une chose étrange que l'on peut remarquer est une des séquences (PETS2006) a des performances décroissantes avec l'apprentissage. Cela pourrait s'expliquer par un seuil trop haut pour cette séquence, car plus l'apprentissage avance, plus les erreurs sont petites. De plus petites erreurs auront plus de chances d'être en dessous du seuil de décision, et ainsi diminuer le rappel, qui diminue ensuite aussi la F-measure. Nous avons utilisé la moyenne des séquences croissantes uniquement pour déterminer le moment de convergence de l'apprentissage. Après environ 100 époques, les performances semblent stables et rester dans un intervalle restreint de f-measure. Nous avons donc choisi 120 époques d'apprentissage pour que la convergence se fasse sans trop coûter en calculs.}\label{fig:params:nbepochs}
+	\end{figureth}
+
 
 	\subsubsection{Seuil de décision}
 
@@ -508,7 +514,7 @@
 		\hline
 		$\alpha$-start	& $\alpha$-end & $\sigma$-start & $\sigma$-end & Époques & Images par séquence & Seuil\\
 		\hline
-		0.2 & 0.05 & 0.7 & 0.015 & 100? & 105 & 10?\\
+		0.2 & 0.05 & 0.7 & 0.015 & 120 & 105 & 10?\\
 		\hline
 	\end{tabular}
 	\end{tableth}
