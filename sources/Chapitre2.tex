@@ -131,12 +131,13 @@
 
 	\subsection{Présentation de la base de données}
 
-	Il n'existe pas à notre connaissance de base de données de détection de nouveauté respectant nos hypothèses de caméra statique, de [...]. Une alternative se trouve dans la base de donnée CDnet \cite{wang-cdnet}. Elle a pour objectif d'uniformiser les résultats dans un domaine proche de la détection de nouveauté ; la détection de changement. Les deux domaines peuvent sembler similaires au premier abord car les deux approches visent la même application réelle. Cependant cela cache une différence conceptuelle. La détection de changement se concentre sur le mouvement pour séparer le fond des objets intéressants dans une image. La détection de nouveauté quand à elle se réfère à une représentation apprise de l'environnement (discuté plus en détail dans la section [...]). Dans les captures vidéos réelles, les deux sont généralement équivalents dû au fait que lorsqu'une nouveauté apparaît, elle le fait généralement en se déplaçant. En pratique cela veut dire que la majorité de CDnet peut être utilisée pour de la détection de nouveauté. Nous présenterons les catégories et vidéos que l'on a utilisées, et des exemples de vidéos qui n'ont pas été retenues avec des explications dans la suite.
+	Nous avons choisi d'utiliser la base de données ChangeDetection.Net (CDnet) \cite{wang-cdnet} pour réaliser nos expériences. C'est un jeu de données très utilisé dans le domaine de la détection de changements dans le domaine visible et infrarouge avec une caméra statique. Ce sont des données typiquement disponibles par le biais de caméras de surveillance par exemple, et l'application pour laquelle elle mesure les performances est la détection de changements, comme l'indique son nom.
+
+	Nous avons dans cette thèse avant tout parlé de détection de nouveauté, et il existe une différence conceptuelle entre la nouveauté et le changement. La détection de changement se concentre sur le mouvement pour séparer le fond des objets intéressants dans une image. La détection de nouveauté quand à elle se réfère à une représentation apprise de l'environnement. Dans les captures vidéos réelles, les deux sont généralement équivalents dû au fait que lorsqu'une nouveauté apparaît, elle le fait généralement en se déplaçant. En pratique cela veut dire que la majorité, mais pas la totalité, de CDnet peut être utilisée pour de la détection de nouveauté. Nous présenterons les catégories et vidéos que l'on a utilisées, et des exemples de vidéos qui n'ont pas été retenues avec des explications dans la suite.
 	
-	CDnet regroupe 53 séquences vidéos originaires de sources variées. Elles proviennent principalement de caméras de surveillance ou de captures effectuées par des chercheurs pour leur propres besoins. Il n'y a que des captures réelles, sans images synthétiques de scènes intérieures et extérieures. Les vidéos sont toutes en couleur, sauf pour deux catégories \textit{thermal} et \textit{turbulences}, et de résolution assez faible, allant de $320 \times 240$ de $720 \times 486$ pixels. Elles sont groupées en 11 catégories de 4 à 6 vidéos sensées représenter une variété de difficultés que peuvent rencontrer les modèles de détection de changement. Il existe cependant un certain biais dans CDnet, car il est fortement orienté vers de la détection de personnes et de véhicules. Ces catégories sont présentées dans les figures suivantes.
+	CDnet regroupe 53 séquences vidéos originaires de sources variées. Elles proviennent principalement de caméras de surveillance ou de captures effectuées par des chercheurs pour leur propres besoins. Il n'y a que des captures réelles, sans images synthétiques, de scènes intérieures et extérieures. Les vidéos sont toutes en couleur, sauf pour deux catégories \textit{thermal} et \textit{turbulences}, et de résolution assez faible, allant de $320 \times 240$ à $720 \times 486$ pixels. Elles sont groupées en 11 catégories de 4 à 6 vidéos sensées représenter une variété de difficultés que peuvent rencontrer les modèles de détection de changement. Il existe cependant un certain biais dans CDnet, car il est fortement orienté vers de la détection de personnes et de véhicules. Ces catégories sont présentées dans les figures suivantes.
 
-	Parmi les 11 catégories de CDnet, nous avons décidé d'en utiliser 8 complètement, d'utiliser une version réduite pour 2 d'entre elles et d'en enlever une. Les deux catégories réduites sont \textit{Intermittent Object Motion} et \textit{Low framerate}. La réduction consiste à enlever une partie des vidéos qui ne correspondaient pas à notre tâche de ces catégories et de conserver les autres. Une illustration de la différence entre la détection de changements et la détection de nouveauté qui est la source de la suppression est montré sur la figure \ref{fig:cdnet:diff}. La catégorie que nous avons décidé de ne pas du tout utiliser car elle ne correspondait pas à notre scénario est \textit{Pan tilt zoom}. C'est une catégorie un peu spéciale car elle change une partie fondamentale du scénario. La caméra n'est plus statique mais effectue des rotations et des zooms ce qui change significativement son environnement visuel.
-
+	Parmi les 11 catégories de CDnet, nous avons décidé d'en utiliser 8 complètement, d'utiliser une version réduite pour 2 d'entre elles et d'en enlever une. Les deux catégories réduites sont \textit{Intermittent Object Motion} et \textit{Low framerate}. La réduction consiste à enlever une partie des vidéos qui ne correspondaient pas à notre application visée de détection de nouveauté et de conserver les autres. Une illustration de la différence entre la détection de changements et la détection de nouveauté qui est la source de la suppression est montré sur la figure \ref{fig:cdnet:diff}. La catégorie que nous avons décidé de ne pas du tout utiliser car elle ne correspondait pas à notre scénario est \textit{Pan tilt zoom}. C'est une catégorie un peu spéciale car elle change une partie fondamentale du scénario. La caméra n'est plus statique mais effectue des rotations et des zooms ce qui change significativement son environnement visuel.
 
 	\begin{figureth}
 		\begin{subfigureth}{0.24\textwidth}
@@ -167,7 +168,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/badWeather/in004863}\caption{Blizzard}	
 		\end{subfigureth}
-		\caption[Catégorie Bad weather]{\textit{Bad weather} : Cette catégorie comprend des variations du scénario de base avec une météo dégradée. La difficulté principale vient de la neige qui tombe, et du changment de l'environnement avec les traces de pneus sur la neige par exemple.}\label{fig:cdnet:badweather}
+		\caption[Catégorie Bad Weather]{\textit{Bad Weather} : Cette catégorie comprend des variations du scénario de base avec une météo dégradée. La difficulté principale vient de la neige qui tombe, et du changement de l'environnement avec les traces de pneus sur la neige par exemple.}\label{fig:cdnet:badweather}
 	\end{figureth}
 
 	\begin{figureth}
@@ -183,7 +184,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/cameraJitter/in002287}\caption{Boulevard}	
 		\end{subfigureth}
-		\caption[categorie camera jitter]{\textit{Camera Jitter} : Ces vidéos proviennent de caméras instables à cause de vent fort ou d'autres raisons. Elles ont de façon irrégulière des translations verticales et horizontales  rapides et de petite amplitude.}\label{fig:cdnet:jitter}
+		\caption[Catégorie Camera Jitter]{\textit{Camera Jitter} : Ces vidéos proviennent de caméras instables à cause de vent fort ou d'autres raisons. Elles ont de façon irrégulière des translations verticales et horizontales  rapides et de petite amplitude.}\label{fig:cdnet:jitter}
 	\end{figureth}
 
 	\begin{figureth}
@@ -205,7 +206,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/dynamicBackground/in007726}\caption{Boats}	
 		\end{subfigureth}
-		\caption[Categorie Dynamic Background]{\textit{Dynamic Background} : La difficulté se porte sur le contenu du fond qui est changeant. Il peut s'agir d'eau ou d'arbres qui bougent dans le vent.}\label{fig:cdnet:dynamic}
+		\caption[Catégorie Dynamic Background]{\textit{Dynamic Background} : La difficulté se porte sur le contenu du fond qui est changeant. Il peut s'agir d'eau ou d'arbres qui bougent dans le vent.}\label{fig:cdnet:dynamic}
 	\end{figureth}
 
 	\begin{figureth}
@@ -227,7 +228,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/shadow/in001850}\caption{Backdoor}	
 		\end{subfigureth}
-		\caption[Categorie Shadow]{\textit{Shadow} : Catégorie de vidéos qui présente plus d'ombres que la moyenne.}\label{fig:cdnet:shadow}
+		\caption[Catégorie Shadow]{\textit{Shadow} : Catégorie de vidéos qui présente plus d'ombres que la moyenne.}\label{fig:cdnet:shadow}
 	\end{figureth}
 
 	\begin{figureth}
@@ -249,7 +250,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/nightVideos/in000671}\caption{StreetCornerAtNight}	
 		\end{subfigureth}
-		\caption[Categorie Night Videos]{\textit{Night Videos} : Vidéos de nuit avec un contraste fort entre l'obscurité ambiante et les lumières artificielles de l'éclairage public et des phares de voitures.}\label{fig:cdnet:night}
+		\caption[Catégorie Night Videos]{\textit{Night Videos} : Vidéos de nuit avec un contraste fort entre l'obscurité ambiante et les lumières artificielles de l'éclairage public et des phares de voitures.}\label{fig:cdnet:night}
 	\end{figureth}
 
 	\begin{figureth}
@@ -268,7 +269,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/thermal/in002220}\caption{LakeSide}	
 		\end{subfigureth}
-		\caption[Categorie thermal]{\textit{Thermal} : Ces vidéos ont été prises par une caméra infrarouge et sont en niveau de gris.}\label{fig:cdnet:shadow}
+		\caption[Catégorie Thermal]{\textit{Thermal} : Ces vidéos ont été prises par une caméra infrarouge et sont en niveau de gris.}\label{fig:cdnet:shadow}
 	\end{figureth}
 
 	\begin{figureth}
@@ -284,7 +285,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/turbulence/in000195}\caption{Turbulence3}	
 		\end{subfigureth}
-		\caption[Categorie turbulence]{\textit{Turbulence} : Catégorie qui regroupe des vidéos provenant d'une même caméra infrarouge. Les captures ont été faites avec un objectif longue distance filmant des scènes éloignées de 5 à 15 km de l'objectif. Elle présente de nombreuses distorsions et turbulences atmosphérique dûes à la chaleur et à la distance.}\label{fig:cdnet:turbulence}
+		\caption[Catégorie Turbulence]{\textit{Turbulence} : Catégorie qui regroupe des vidéos provenant d'une même caméra infrarouge. Les captures ont été faites avec un objectif longue distance filmant des scènes éloignées de 5 à 15 km de l'objectif. Elle présente de nombreuses distorsions et turbulences atmosphériques dûes à la chaleur et à la distance.}\label{fig:cdnet:turbulence}
 	\end{figureth}
 	
 	\begin{figureth}
@@ -297,7 +298,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/intermittentObjectMotion/in001350}\caption{Tramstop}	
 		\end{subfigureth}
-		\caption[Categorie intermittent object motion - Reduced]{\textit{Intermittent object motion Reduced} : Cette catégorie comprend des scénarios particuliers dans lesquels le changement est intermittent (c'est à dire qu'un objet passe de mouvement à statique ou inversement). Dans cette catégorie trois vidéos sur six on été conservées.}\label{fig:cdnet:shadow}
+		\caption[Catégorie Intermittent Object Motion - Reduced]{\textit{Intermittent Object Motion Reduced} : Cette catégorie comprend des scénarios particuliers dans lesquels le changement est intermittent (c'est à dire qu'un objet passe de mouvement à statique ou inversement). Dans cette catégorie trois vidéos sur six on été conservées.}\label{fig:cdnet:shadow}
 	\end{figureth}
 
 	\begin{figureth}
@@ -310,7 +311,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/lowFramerate/in000235}\caption{Tunnel Exit}	
 		\end{subfigureth}
-		\caption[Categorie low framerate - Reduced]{\textit{Low Framerate Reduced} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 secondes entre chaque image). Cela a pour but de pénaliser les approches à partir de flow optique, cependant notre approche n'est pas concernée. Trois vidéos sur les quatre ont été conservées. Seule une vidéo d'une marina a été retirée car la nouveauté (des bateaux) était trop similaire au fond, qui consiste en un grand nombre de bateaux amarrés.}\label{fig:cdnet:fps}
+		\caption[Catégorie Low Framerate - Reduced]{\textit{Low Framerate Reduced} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 secondes entre chaque image). Cela a pour but de pénaliser les approches à partir de flux optique, cependant notre approche n'est pas concernée. Trois vidéos sur les quatre ont été conservées. Seule une vidéo d'une marina a été retirée car la nouveauté (des bateaux) était trop similaire au fond, qui consiste en un grand nombre de bateaux similaires amarrés.}\label{fig:cdnet:fps}
 	\end{figureth}
 
 	\begin{figureth}
@@ -340,9 +341,10 @@
 	\begin{equation}
 		\text{MQE} = \frac{1}{dn} \sum_{i=0}^{n-1} |v_i - u_i|
 	\end{equation}
-	[glossaire pour la terminologie mathématique employée]
 
-	Il s'agit d'une mesure simple à calculer et à comprendre. Elle présente néanmoins une mauvaise pondération des différences en pénalisant les outliers de la même manière que des différences diffuses. Par exemple un pixel qui aura un changement maximal (qui passe de noir à blanc par exemple) aura le même impact sur l'erreur que cent pixels qui passent de 0 à 0,01. Pour des images, le premier changement sera visible pour notre œil, mais pas le second. Nous avons quand même choisi d'utiliser cette mesure dans nos expériences car elle représente le mieux la différence numérique des vecteurs à leurs représentants avant notre interprétation subjective de ces valeurs en images.
+	Avec $n$ le nombre de vecteurs d'entrée, $d$ la dimension de ces vecteurs, $v_i$ le $i^{\textit{ième}}$ vecteur d'entrée et $u_i$ le prototype du neurone représentant de ce vecteur d'entrée. 
+
+	Il s'agit d'une mesure simple à calculer et à comprendre. Elle présente néanmoins une mauvaise pondération des différences en pénalisant les \textit{outliers} de la même manière que des différences diffuses. Par exemple un pixel qui aura un changement maximal (qui passe de noir à blanc par exemple) aura le même impact sur l'erreur que cent pixels qui passent de 0 à 0,01. Pour des images, le premier changement sera visible pour notre œil, mais pas le second. Nous avons tout de même choisi d'utiliser cette mesure dans nos expériences car elle représente le mieux la différence numérique des vecteurs à leurs représentants avant notre interprétation subjective de ces valeurs en images.
 
 	\subsubsection{PSNR : Peak Signal to Noise Ratio}
 
@@ -352,12 +354,14 @@
 		\text{MSQE} = \frac{1}{dn} \sum_{i=0}^{n-1} (v_i - u_i)^2
 	\end{equation}
 	\begin{equation}
-		\text{PSNR} = 10 \log_{10} (\frac{1}{\text{MSQE}})
+		\text{PSNR} = 10 \times \log_{10} \left( \frac{1}{\text{MSQE}} \right)
 	\end{equation}
 
-	Le PSNR est inspiré du domaine du traitement du signal, d'où la terminologie étrange pour de la compression d'image. L'idée est de trouver le ratio de bruit introduit par les pertes de la compression (Noise), avec l'intensité maximale du signal (Peak Signal), qui est la valeur maximum d'un pixel (1 dans notre cas). On peut noter que le PSNR fait passer d'un objectif de minimisation à une maximisation. L'ordre des valeurs reste inchangé et le logarithme ajoute un effet de rendement décroissant. Si on a par exemple trois valeurs de MSQE $x_1$, $y_1$ et $z_1$ avec $x_1 < y_1 < z_1$. $x_1$ sera la meilleure (la plus petite) et $z_1$ la moins bonne (la plus grande). Une fois converties en PSNR, les valeurs seront dans l'ordre suivant : $x_2 > y_2 > z_2$, avec $x_2$ étant toujours la meilleure et $z_2$ toujours la moins bonne, mais pour les raisons inverses cette fois : plus un PSNR est grand, mieux c'est. Un autre changement sera que si les intervalles étaient les même entre les trois valeurs, c'est à dire si $y_1 - x_1 = z_1 - y_1$ alors on aura $y_2 - x_2 < z_2 - y_2$, car le logarithme met plus d'espace deux hautes valeurs de MSQE qu'entre deux petites.
+	Avec $n$ le nombre de vecteurs d'entrée, $d$ la dimension de ces vecteurs, $v_i$ le $i^{\textit{ième}}$ vecteur d'entrée et $u_i$ le prototype du neurone représentant de ce vecteur d'entrée.
 
-	Nous avons choisi d'utiliser le PSNR à la place de la MSQE car il est beaucoup plus facilement interprétable par des humains. Sa valeur typique étant comprise entre 0 et 100. L'utilisation du carré dans la MSQE entraîne une plus grande pénalisation des outliers en comparaison à MQE. Ce n'est quand même pas une mesure objective de la qualité d'une image, car elle ne prend pas en compte certains paramètres comme le voisinage par exemple, qui sont importants dans notre perception humaine [réf biblio]. Puisque l'on utilise la distance quadratique dans nos algorithmes de quantification vectorielle, le PSNR est une métrique intéressante car elle est la valeur que notre algorithme tente de minimiser.
+	Le PSNR est inspiré du domaine du traitement du signal, d'où la terminologie étrange pour de la compression d'image. L'idée est de trouver le ratio de bruit introduit par les pertes de la compression (Noise), avec l'intensité maximale du signal (Peak Signal), qui est la valeur maximum d'un pixel (1 dans notre cas). On peut noter que le PSNR fait passer d'un objectif de minimisation à une maximisation. L'ordre des valeurs reste inchangé par rapport au MSQE et le logarithme ajoute un effet de rendement décroissant. Si on a par exemple trois valeurs de MSQE $x_1$, $y_1$ et $z_1$ avec $x_1 < y_1 < z_1$. $x_1$ sera la meilleure (la plus petite) et $z_1$ la moins bonne (la plus grande). Une fois converties en PSNR, les valeurs seront dans l'ordre suivant : $x_2 > y_2 > z_2$, avec $x_2$ étant toujours la meilleure et $z_2$ toujours la moins bonne, mais pour les raisons inverses cette fois : plus un PSNR est grand, mieux c'est. Un autre changement sera que si les intervalles étaient les même entre les trois valeurs, c'est à dire si $y_1 - x_1 = z_1 - y_1$ alors on aura $x_2 - y_2 > y_2 - z_2$, à cause de l'inversion de MSQE.
+
+	Nous avons choisi d'utiliser le PSNR à la place de la MSQE car il est beaucoup plus facilement interprétable par des humains ; sa valeur typique étant comprise entre 0 et 100. L'utilisation du carré dans la MSQE entraîne une plus grande pénalisation des \textit{outliers} en comparaison à MQE. Ce n'est malgré tout pas une mesure objective de la qualité d'une image, car elle ne prend pas en compte certains paramètres comme le voisinage par exemple, qui sont importants dans la perception visuelle \ref{sec:sota:vision}. Puisque l'on utilise la distance quadratique dans nos algorithmes de quantification vectorielle, le PSNR est une métrique intéressante car elle est la valeur que notre algorithme d'apprentissage tente de minimiser.
 	
 	\subsubsection{Précision}
 
@@ -385,23 +389,23 @@
 
 	Le formule de la F-mesure est assez simple, mais elle cache un comportement plus complexe. La précision et le rappel étant tous les deux entre 0 et 1, la F-mesure ne peut aussi prendre des valeurs que dans cet intervalle. Car lorsque les deux sont égaux à 1, la formule donne aussi 1. De par les propriétés de la multiplication entre deux nombres entre 0 et 1, la F-mesure favorise les précisions et rappels proches entre elles, et pénalise lorsque les deux valeurs sont éloignées. Ainsi, pour maximiser la F-mesure, augmenter la valeur la plus basse entre la précision et le rappel aura le plus d'effet.
 	
-	Une propriété notable dans le calcul de la F-mesure est l'absence de distributivité. En pratique, cela implique que la moyenne des F-mesure n'est pas égal à la F-mesure des moyennes de précision et rappel. Cela peut poser problème lorsque l'on essaye d'agréger des valeurs sur plusieurs images par exemple. Il est donc nécessaire de calculer les F-mesure pour chaque image séparément pour ensuite en faire la moyenne. On peut également observer cette propriété dans les résultats présentés dans la section [réf section résultat], où la valeur de la F-mesure ne suit pas la formule lorsque l'on applique aux moyennes des précision et rappel.
+	Une propriété notable dans le calcul de la F-mesure est l'absence de distributivité. En pratique, cela implique que la moyenne des F-mesure n'est pas égal à la F-mesure des moyennes de précision et rappel. Cela peut poser problème lorsque l'on essaye d'agréger des valeurs sur plusieurs images par exemple. Il est donc nécessaire de calculer les F-mesures pour chaque image séparément pour ensuite en faire la moyenne. On peut également observer cette propriété dans les résultats présentés dans la section \ref{sec:res:stats}, où la valeur de la F-mesure ne suit pas la formule lorsque elle est appliquée aux moyennes des précision et rappel.
 
 	\subsubsection{L'œil humain}
 
-	Il n'existe pas de mesure objective pour déterminer la qualité de l'apprentissage d'une quantification vectorielle ou de détection de nouveauté, il n'y a que des estimations et approximations. Pour la quantification vectorielle par exemple, le calcul de l'erreur semble naturel, mais il ne capture pas toutes les spécificités des modèles. Notamment lorsque l'on travaille avec des images, le problème déjà évoqué que certaines erreurs sont visuellement plus perceptibles que d'autres, alors qu'elles ont la même valeur numérique. Mais il y a aussi des propriétés de certains modèles de VQ qui ne peuvent être simplement quantifiés, comme par exemple la gestion des outliers. Un algorithme peut par exemple préférer représenter le mieux possible la majorité de la base de données en laissant de côté les outliers, ou au contraire de faire en sorte que toutes les données soient bien représentées, mais en sacrifiant une meilleure précision sur les données les plus nombreuses. Le même problème de subjectivité se présente pour la détection de nouveauté, que nous avons déjà évoqué dans les sections [ref]. Mais en plus, les mesures quantitatives que nous avons sélectionnées ne représentent pas forcément l'aspect qualitatif de la détection de nouveauté. Par exemple si on a un algorithme qui a pour résultat le contour des objets nouveaux dans une image, la tâche sera bien remplie, mais le score sur les métriques sera mauvais car il attendra une version positive pour tous les pixels de l'objet et non pas seulement le contour. Ce genre de problème peut parfois être résolu par l'utilisation de post processing, le remplissage à partir des contours ici par exemple. Mais ce n'est pas toujours le cas.
+	Il n'existe pas de mesure objective pour déterminer la qualité de l'apprentissage d'une quantification vectorielle ou de détection de nouveauté, il n'y a que des estimations et approximations. Pour la quantification vectorielle par exemple, le calcul de l'erreur semble naturel, mais il ne capture pas toutes les spécificités des modèles. Notamment lorsque l'on travaille avec des images, le problème déjà évoqué que certaines erreurs sont visuellement plus perceptibles que d'autres, alors qu'elles ont la même valeur numérique. Mais il y a aussi des propriétés de certains modèles de VQ qui ne peuvent être simplement quantifiés, comme par exemple la gestion des \textit{outliers}. Un algorithme peut par exemple préférer représenter le mieux possible la majorité de la base de données en laissant de côté les \textit{outliers}, ou au contraire de faire en sorte que toutes les données soient bien représentées, mais en sacrifiant une meilleure précision sur les données les plus nombreuses. 
+	
+	Le même problème de subjectivité se présente pour la détection de nouveauté, par exemple dans sa différenciation avec la détection de changement déjà évoquée. Mais en plus, les mesures quantitatives que nous avons sélectionnées ne représentent pas forcément l'aspect qualitatif de la détection de nouveauté. Par exemple si on a un algorithme qui a pour résultat le contour des objets nouveaux dans une image, la tâche sera bien remplie, mais le score sur les métriques sera mauvais car il sera attendu de l'algorithme qu'il marque de façon positive tous les pixels de l'objet nouveau et non pas seulement le contour. Ce genre de problème peut parfois être résolu par l'utilisation de post processing, le remplissage à partir des contours ici par exemple. Mais ce n'est pas toujours le cas.
 
-	Il est donc nécessaire d'adjoindre à ces métriques objectives, une estimation subjective du comportement des modèles évalués. Pour les images, nous avons la chance d'être naturellement dotés de très bons capteurs et d'un réseau neuronal biologique performant très entraîné sur des données visuelles. Par conséquent certaines de nos interprétations se baseront sur le résultat visuel de nos modèles en complément des métriques.
+	Il est donc nécessaire d'adjoindre à ces métriques objectives, une estimation subjective du comportement des modèles évalués. Pour les images, nous avons la chance d'être naturellement dotés de très bons capteurs et d'un réseau neuronal biologique performant très entraîné sur des données visuelles. Par conséquent certaines de nos interprétations s'appuierons sur le résultat visuel de nos modèles en complément des métriques.
 
 	\subsection{Préparation des données}
 
 	\subsubsection{Image de fond}
 
-	Notre modèle a besoin pour l'apprentissage d'un fond sans cibles pour fonctionner. Il nous faut donc une image du fond pour chaque séquence vidéo. Une idée simple serait de sélectionner une image sans cible dans la séquence et de l'utiliser comme fond. Cependant il arrive que des vidéos présentent pendant toute la séquence de la nouveauté, et qu'une image sans perturbation n'existe pas dans la séquence. Pour contrer ce problème, une technique fréquemment utilisée [réfs] pour enlever des objets d'une image est de générer une image médiane à partir d'une séquence. [détails de l'implémentation à voir plus tard].
+	Notre modèle a besoin pour l'apprentissage d'un fond sans cibles pour fonctionner. Il nous faut donc une image du fond pour chaque séquence vidéo. Il arrive cependant que des vidéos présentent pendant toute la séquence de la nouveauté, et qu'une image sans perturbation n'existe pas dans la séquence. Pour contrer ce problème, nous avons calculé une image médiane de la séquence pour obtenir une image de fond sans perturbations.
 
-	Un problème qui peut survenir avec la médiane, est l'adoucissement des images en enlevant les valeurs extrêmes qui peuvent apparaîtres dans certaines images. Par exemple pour les images de la catégorie \textit{Bad Weather}, les flocons de neiges qui sont constamment devant la caméra disparaissent dans l'image médiane. Mais cela ne pose pas de problème particulier en pratique [réf tableau].
-
-	[tableau comparatif]
+	Pour une mise en pratique potentielle, nous supposons qu'il serait facile d'avoir une image du fond sans perturbations, ou qu'il serait aisé d'appliquer la même méthode en effectuant une capture vidéo et en calculant la médiane lors de l'initialisation.
 	
 	\subsubsection{Échantillonage de l'évaluation}
 
@@ -411,20 +415,16 @@
 
 	\begin{figureth}
 		\includegraphics[width=\linewidth]{parameters/number_imgs_evaluated}
-		\caption[Échantillonnage de l'évaluation]{Précision de l'approximation de la F-mesure en fonction de la taille de l'échantillon. 105 a été choisi car c'est le plus petit échantillon proche de la moyenne et ne dépassant quasiment pas les 0.5\% de différence. Les sections droites des lignes, surtout vers des grands échantillons, sont à cause d'arrondis sur la taille du pas entier utilisé. Ainsi les échantillons ne sont pas de la taille exacte que ce que laisse indiquer l'abscisse, mais au moins de la taille indiquée, souvent plus grands. La variabilité qui augmente après 105 n'est pas un problème, car l'on ne mesure pas un procédé stochastique, mais la représentativité des images sélectionnées. Ce qui veut dire que la variation due à l'échantillonnage devrait rester similaire même avec des paramètres différents pour la SOM.}\label{fig:params:nbimgs}
+		\caption[Échantillonnage de l'évaluation]{Précision de l'approximation de la F-mesure en fonction de la taille de l'échantillon. 105 a été choisi car c'est le plus petit échantillon proche de la moyenne et ne dépassant quasiment pas les 0.5\% de différence. Les sections droites des lignes, surtout vers des grands échantillons, sont à cause d'arrondis sur la taille du pas entier utilisé. Ainsi les échantillons ne sont pas de la taille exacte que ce que laisse indiquer l'abscisse, mais au moins de la taille indiquée, souvent plus grands. La variabilité qui augmente après 105 n'est pas nécessairement un problème, car l'on ne mesure pas un procédé stochastique, mais la représentativité des images sélectionnées. Ce qui veut dire que la variation due à l'échantillonnage devrait en théorie rester similaire même avec des paramètres différents pour la SOM.}\label{fig:params:nbimgs}
 	\end{figureth}
 
 	\subsection{Paramétrages des modèles}
 
-	Notre modèle comporte de nombreux paramètres pour lesquels l'impact sur les performances n'est pas trivial. C'est à dire que changer un paramètre dans un sens pourrait amener à une augmentation des performances à une certaine valeur, et à une diminution des performance à une autre valeur. Il y a également des interactions entre les paramètres, ce qui signifie que le paramètre $a$ optimal ne sera pas le même pour deux valeurs du paramètre $b$ par exemple. 
+	Notre modèle comporte de nombreux paramètres pour lesquels l'impact sur les performances n'est pas trivial. C'est à dire que changer un paramètre dans un sens pourrait amener à une augmentation des performances à une certaine valeur, et à une diminution des performance à une autre valeur. Il existe également des interactions entre les paramètres, ce qui signifie que le paramètre $a$ optimal ne sera pas le même pour deux valeurs du paramètre $b$ par exemple. 
 
-	En général, dans ces cas de figure, on effectue une optimisation globale de tous les paramètres en même temps, pour prendre en compte l'intéraction entre les paramètres. Cependant, dans notre cas, l'espace de recherche serait très grand (8 dimensions pour 8 paramètres) et nécessiterait un très grand nombre d'exécutions pour le couvrir entièrement. Chacune de nos exécutions durant en moyenne quelques minutes, il n'est pas souhaitable d'en effectuer un trop grand nombre.
+	En général, dans ces cas de figure, on effectue une optimisation globale de tous les paramètres en même temps, pour prendre en compte l'interaction entre les paramètres. Cependant, dans notre cas, l'espace de recherche serait très grand (8 dimensions pour 8 paramètres) et nécessiterait un très grand nombre d'exécutions pour le couvrir entièrement. Chacune de nos exécutions durant en moyenne quelques minutes, il n'est pas souhaitable d'en effectuer un trop grand nombre. De plus, il est difficile avec ce genre d'approche de la paramétrisation de comprendre l'impact de chaque paramètre sur le résultat.
 
-	Nous avons ainsi choisi de faire une étude paramétrique en séparant les paramètres le plus possible. Cela nous permet d'analyser chaque paramètre, ou groupe de paramètres en détail pour mieux comprendre leur effet sur le comportement de notre modèle. Cela nous amènera également à pouvoir prédire un comportement dans des espaces paramétriques que nous n'avons pas explorés ; vers quelle valeur les performances convergent-t-elles si on pousse un paramètre vers l'infini par exemple. Cette étude pourra être faite avec un nombre raisonnable d'exécutions avec les moyens matériels que nous avons à disposition. Le défaut sera que l'interaction entre certains paramètres sera difficile à évaluer.
-
-	Nous optimiserons nos paramètres pour maximiser la \textit{F-mesure}, car c'est la métrique la plus proche de la tâche de détection de nouveauté.
-	
-	La section se conclura par un tableau récapitulatif des paramètres que nous aurons utilisés pour générer nos résultats.
+	Nous avons ainsi choisi de faire une étude paramétrique en séparant les paramètres le plus possible. Cela nous permet d'analyser chaque paramètre, ou groupe de paramètres en détail pour mieux comprendre leur effet sur le comportement de notre modèle. Cela nous amènera également à pouvoir prédire un comportement dans des espaces paramétriques que nous n'avons pas explorés ; vers quelle valeur les performances convergent-t-elles si on pousse un paramètre vers l'infini par exemple. Cette étude pourra être faite avec un nombre raisonnable d'exécutions avec les moyens matériels que nous avons à disposition. Le défaut sera que l'interaction entre certains paramètres sera difficile à évaluer. Nous optimiserons nos paramètres pour maximiser la \textit{F-mesure}, car c'est la métrique la plus proche de la tâche de détection de nouveauté. La section se conclura par un tableau récapitulatif des paramètres que nous aurons utilisés pour générer nos résultats.
 
 	\subsubsection{Variation aléatoire}
 
@@ -457,7 +457,7 @@
 
 	\subsubsection{Optimisation d'$\alpha$ et de $\sigma$}
 
-	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur des vidéos de la \textit{baseline}. Nous avons fait plus de 1000 mesures par vidéo, avec pour chaque mesure, la moyenne de 8 exécutions, deux pour chaque vidéo, pour réduire le bruit statistique. La figure \ref{fig:params:sigopt} explique le choix de $\sigma$ que nous avons fait commencé à 0.7 et finir à 0.015. Puis nous avons relancé une optimisation pour les valeurs d'alpha uniquement pour mieux observer les tendances avec les valeurs fixées de $\sigma$. La figure \ref{fig:params:alphaopt} présente ces résultats. Nous avons choisi pour $\alpha$ un départ à 0.5 et de finir à 0.06.
+	Nous avons présenté dans la section \ref{param_som} ces deux paramètres et leurs effets. Ces paramètres sont très dépendants entre eux, car ils pondèrent tous les deux la formule de modification des poids de l'apprentissage. Nous allons donc les optimiser ensemble. La recherche a été faite par un \textit{Tree-structured Parzen Estimator} \cite{bergstra2011algorithms}, sur des vidéos de la \textit{baseline}. Nous avons fait plus de 1000 mesures par vidéo, avec pour chaque mesure, la moyenne de 8 exécutions, deux pour chaque vidéo, pour réduire le bruit statistique. La figure \ref{fig:params:sigopt} explique le choix de $\sigma$ que nous avons fait commencé à 0.7 et finir à 0.015. Puis nous avons relancé une optimisation pour les valeurs d'alpha uniquement pour mieux observer les tendances avec les valeurs fixées de $\sigma$. La figure \ref{fig:params:alphaopt} présente ces résultats. Nous avons choisi pour $\alpha$ un départ à 0.2 et de finir à 0.05.
 
 	Nous pouvons aussi noter l'ordre d'importance des paramètres par leur impact sur le résultat : $\textit{Sigma end} > \textit{Sigma start} > \textit{Alpha end} > \textit{Alpha start}$.
 
@@ -468,7 +468,7 @@
 		\begin{subfigureth}{.75\textwidth}
 			\includegraphics[width=\linewidth]{parameters/sigma_start}	
 		\end{subfigureth}
-		\caption[Optimisation de $\sigma$]{Le premier paramètre qui a une valeur optimale évidente est \textit{Sigma end}, où une petite valeur proche de zéro semble idéale. Cela s'explique facilement du fait qu'une valeur faible de \textit{Sigma end} induit que lors des dernières époques la SOM va se focaliser sur l'optimisation de la quantification vectorielle au dépend de la topologie, pour obtenir des neurones les plus proches possibles des imagettes qu'ils représentent.\\
+		\caption[Optimisation de $\sigma$]{Le premier paramètre qui a une valeur optimale évidente est \textit{Sigma end}, où une petite valeur proche de zéro semble idéale. Cela s'explique facilement du fait qu'une valeur faible de \textit{Sigma end} amène à ce que lors des dernières époques la SOM va se focaliser sur l'optimisation de la quantification vectorielle au dépend de la topologie, pour obtenir des neurones les plus proches possibles des imagettes qu'ils représentent. Nous l'avons choisi à 0.015.\\
 		
 		Le second graphique représente un sous échantillon d'expériences sélectionnés avec une valeur de \textit{Sigma end} inférieure à 0.05. En affichant les résultats en fonction de \textit{Sigma start}, on observe une légère préférence pour des valeurs de \textit{Sigma start} assez élevées, c'est à dire dans les alentours de 0.7.}\label{fig:params:sigopt}
 	\end{figureth}
@@ -481,42 +481,47 @@
 		\begin{subfigureth}{.75\textwidth}
 			\includegraphics[width=\linewidth]{parameters/alpha_start}	
 		\end{subfigureth}
-		\caption[Optimisation d'$\alpha$]{Les différences sont moins prononcées pour \textit{Alpha end} que pour \textit{Sigma end}, mais une préférence est tout de même visible. Une faible valeur d'\textit{Alpha end} non nulle semble optimale. En pratique cela se traduit par un ajustement fin des poids des neurones à la fin de l'apprentissage.\\
+		\caption[Optimisation d'$\alpha$]{\textit{Alpha end} semble fonctionner avec une préférence similaire à \textit{Sigma end}. Une faible valeur d'\textit{Alpha end} non nulle semble optimale. En pratique cela se traduit par un ajustement fin des poids des neurones à la fin de l'apprentissage. Nous l'avons mis à 0.05\\
 		
-		Pour \textit{Alpha start} nous avons à nouveau réduit les expériences à un échantillon dont la valeur d'\textit{Alpha end} est inférieure à 0.2. Il ne semble pas y avoir de préférence forte pour \textit{Alpha start}, nous prendrons donc une valeur intermédiaire de 0.5, qui semble marcher le mieux.}\label{fig:params:alphaopt}
+		Pour \textit{Alpha start} nous avons à nouveau réduit les expériences à un échantillon dont la valeur d'\textit{Alpha end} est inférieure à 0.2. Il ne semble pas y avoir de préférence forte pour \textit{Alpha start}, nous prendrons donc la valeur 0.2, qui semble marcher le mieux.}\label{fig:params:alphaopt}
 	\end{figureth}
 
 
 	\subsubsection{Durée de l'apprentissage}
 
-	Le dernier paramètre des SOM qu'il reste à optimiser est le nombre d'époques. Une époque étant un parcours complet de la base d'apprentissage, ce paramètre doit être juste assez élevé pour que la SOM converge vers un résultat et assez bas pour que l'apprentissage ne soit pas trop long. La durée de celui-ci étant directement proportionnel au nombre d'époques. Le résultat de nos tests est montré figure \ref{fig:params:nbepochs}.
+	Le dernier paramètre des SOM qu'il reste à optimiser est le nombre d'époques. Une époque étant un parcours complet de la base d'apprentissage, ce paramètre doit être juste assez élevé pour que la SOM converge vers un résultat et assez bas pour que l'apprentissage ne soit pas trop long. La durée de celui-ci étant directement proportionnel au nombre d'époques. Le résultat de nos tests est montré figure \ref{fig:params:nbepochs}. Nous avons choisi 120 époques d'apprentissage pour les SOM.
 
 	\begin{figureth}
 		\includegraphics[width=\linewidth]{parameters/number_epochs}
-		\caption[Nombre d'époques]{F-measure en fonction du nombre d'époques sur la \textit{baseline}. Une chose étrange que l'on peut remarquer est une des séquences (PETS2006) a des performances décroissantes avec l'apprentissage. Cela pourrait s'expliquer par un seuil trop haut pour cette séquence, car plus l'apprentissage avance, plus les erreurs sont petites. De plus petites erreurs auront plus de chances d'être en dessous du seuil de décision, et ainsi diminuer le rappel, qui diminue ensuite aussi la F-measure. Nous avons utilisé la moyenne des séquences croissantes uniquement pour déterminer le moment de convergence de l'apprentissage. Après environ 100 époques, les performances semblent stables et rester dans un intervalle restreint de f-measure. Nous avons donc choisi 120 époques d'apprentissage pour que la convergence se fasse sans trop coûter en calculs.}\label{fig:params:nbepochs}
+		\caption[Nombre d'époques]{F-mesure en fonction du nombre d'époques sur la \textit{baseline}. Une chose étrange que l'on peut remarquer est une des séquences (PETS2006) a des performances décroissantes avec l'apprentissage. Cela pourrait s'expliquer par un seuil trop haut pour cette séquence, car plus l'apprentissage avance, plus les erreurs sont petites. De plus petites erreurs auront plus de chances d'être en dessous du seuil de décision, et ainsi diminuer le rappel, qui diminue ensuite aussi la F-mesure. Nous avons utilisé la moyenne des séquences croissantes uniquement pour déterminer le moment de convergence de l'apprentissage. Après environ 100 époques, les performances semblent stables et restent dans un intervalle restreint de f-mesure. Nous avons donc choisi 120 époques d'apprentissage pour que la convergence se fasse sans trop coûter en calculs.}\label{fig:params:nbepochs}
 	\end{figureth}
-
-
-	\subsubsection{Seuil de décision}
-
-	Seuil de décision (transformation de carte de saillance 0-255 en binaire)
 
 	\subsubsection{Paramètres des GNG}
 
-	[epsilon, maximum age, error decrease, neurons nbr, epochs nbr]
-
-	\subsubsection{Récapitulatif}
+	Nous avons choisi d'utiliser des GNG pour montrer que notre méthode est généralisable à d'autres modèles avec quantification vectorielle et topologie. Ainsi, nous nous sommes contentés pour la paramétrisation d'utiliser de nouveau un \textit{Tree-structured Parzen Estimator} pour optimiser l'intégralité des paramètres en une fois. Leurs valeurs sont présentées dans le tableau \ref{tab:gng:param}.
 
 	\begin{tableth}
-	\label{tab:recap:param}
+	\caption[Paramètres GNG]{Paramètres des GNG}
+	\begin{tabular}{|c|c|c|c|c|c|}
+		\hline
+		$\epsilon_{bmu}$ & $\epsilon_{j}$ & $a_{max}$ & $\alpha$ & $d$ (erreur globale) & Époques\\
+		\hline
+		0.4 & 0.01 & 85 & 0.6 & 0.3 & 110\\
+		\hline
+	\end{tabular}\label{tab:gng:param}
+	\end{tableth}
+
+	\subsubsection{Récapitulatif}\label{sec:param:recap}
+
+	\begin{tableth}
 	\caption[Récapitulatif des paramètres SOM]{Récapitulatif des paramètres SOM}
 	\begin{tabular}{|cc|cc|c|c|c|}
 		\hline
-		$\alpha$-start	& $\alpha$-end & $\sigma$-start & $\sigma$-end & Époques & Images par séquence & Seuil\\
+		$\alpha$-start	& $\alpha$-end & $\sigma$-start & $\sigma$-end & Époques & Images par séquence\\
 		\hline
-		0.2 & 0.05 & 0.7 & 0.015 & 120 & 105 & 10?\\
+		0.2 & 0.05 & 0.7 & 0.015 & 120 & 105\\
 		\hline
-	\end{tabular}
+	\end{tabular}\label{tab:recap:param}
 	\end{tableth}
 
 
@@ -524,28 +529,44 @@
 
 	\section{Résultats expérimentaux}
 
-	Nous allons dans cette section présenter tous les résultats quantitatifs et visuels que nous avons obtenu avec notre méthode sur CDNET. Cette section est découpée en quatre parties. La première présentera l'impact du nombre de neurones et de la taille des imagettes sur les performances et les différences entre les vidéos lorsque l'on fait varier ces paramètres. La seconde présentera les résultats complets sur CDNET et comparera avec l'état de l'art. La troisième présentera visuellement les images que produit notre modèle. La dernière sera consacrée aux discussions et perspectives.
+	Nous allons dans cette section présenter tous les résultats quantitatifs et visuels que nous avons obtenu avec notre méthode sur CDnet. Cette section est découpée en quatre parties. La première présentera l'impact du seuil, du nombre de neurones et de la taille des imagettes sur les performances et les différences entre les vidéos lorsque l'on fait varier ces paramètres. La seconde présentera les résultats complets sur CDNET et comparera avec l'état de l'art. La troisième présentera visuellement les images que produit notre modèle. La dernière sera consacrée aux discussions et perspectives.
+
+	Le seuil, la taille des imagettes et le nombre de neurones auraient pu faire partie de la section des paramètres. Cependant compte tenu de l'importance qu'ils ont sur le résultat et des informations et perspectives qu'ils nous donnent, nous les avons inclus dans la partie résultats.
+
+	Cette section est basée sur un ensemble d'exécutions sur l'intégralité de CDnet. Les SOM ont utilisé les paramètres définis dans la section précédente \ref{sec:param:recap}, et nous avons fait varier les tailles d'imagettes et les tailles de cartes pour cette expérience. Le seuil pouvant être calculé à partir des cartes de saillance uniquement, et donc rapidement, car ne nécessitant pas réapprendre la SOM. Nous l'avons donc également inclus. Au total, cette expérience contient 2520 exécutions pour la SOM, et le même nombre pour les GNG. 
+
+	\subsection{Seuil de décision}
+
+	\begin{figureth}
+		\includegraphics[width=.48\linewidth]{parameters/seuil_heatmap}
+		\includegraphics[width=.48\linewidth]{parameters/seuil_fmeasure_heatmap}
+		\caption[Seuil de décision]{La figure de gauche indique le seuil optimal pour chaque couple de taille de SOM et de taille d'imagettes que l'on a testé. On peut remarquer que le seuil optimal diminue plus la taille de la carte est grande, car il y a moins d'erreurs, et qu'il augmente avec la taille des imagettes, car cela amène plus de bruit.\\
+
+		La figure de droite montre la f-mesure complète (sur l'ensemble de CDnet) pour ce seuil optimal. Le maximum est obtenu pour $25\times25$ neurones, $20\times20$ pixels et un seuil de $7$.}\label{fig:res:seuil}
+	\end{figureth}
+
+	Le seuil de décision est ce qui permet de passer de notre carte de saillance qui contient des valeurs entre 0 et 255 à la carte de détection binaire. Toutes les valeurs en dessous du seuil seront considérées comme fond, et les valeurs au dessus du seuil comme nouveauté. La figure \ref{fig:res:seuil} présente nos résultats pour le seuil.
 
 	\subsection{Nombre de neurones et taille des imagettes}
-
-	La taille des imagettes et le nombre de neurones auraient pu faire partie de la section des paramètres. Cependant compte tenu de l'importance qu'ils ont sur le résultat et des informations et perspectives qu'ils nous donnent, nous les avons inclus dans la partie résultats.
 
 	\subsubsection{Baseline}
 
 	\begin{figureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_highway}\caption{Highway}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\hfill
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_office}\caption{Office}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_pedestrians}\caption{Pedestrians}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\hfill
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_PETS2006}\caption{PETS2006}
 		\end{subfigureth}
-		\caption[F-mesure en fonction du nombre de neurones et de la taille des imagettes, SOM baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:F-mesure3D-baselineSOM}
+		\caption[Nombre de neurones et de taille des imagettes, SOM/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:F-mesure3D-baselineSOM}
 	\end{figureth}
 
 	La figure \ref{fig:res:F-mesure3D-baselineSOM} montre une différence significative de comportement entre les séquences vidéo. La taille des imagettes semble être le facteur le plus important. Pour \textit{Pedestrians} par exemple, une taille d'imagette petite de $8\times8$ donnera les meilleures performances, alors que pour \textit{PETS2006}, ce sont les grosses imagettes de $26\times26$ qui sont optimales. La variabilité est aussi très différente en fonction de la séquence considérée. \textit{Highway} et \textit{Office} sont relativement stables et peu sensibles aux changements de taille d'imagettes et de neurones, tant que ceux-ci ne sont pas trop petits. Au contraire de \textit{PETS2006} pour qui les performances peuvent aller du simple au double en fonction de la taille choisie.
@@ -553,105 +574,126 @@
 	Pour le nombre de neurones, l'optimal semble toujours être du côté où les cartes sont les plus grandes. Cependant les gains apportés par une carte plus grande sont très variables. Généralement importants au début pour une carte petite, les valeurs atteignent rapidement un plateau et n'améliorent que peu la détection de nouveauté. C'est une information importante pour une détection rapide et efficace, car le nombre de neurones dans la carte est un facteur important du coût en calcul de la SOM.
 
 	\begin{figureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_highway}\caption{Highway}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_office}\caption{Office}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_pedestrians}\caption{Pedestrians}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/gng/baseline_PETS2006}\caption{PETS2006}
 		\end{subfigureth}
-		\caption[F-mesure en fonction du nombre de neurones et de la taille des imagettes, GNG baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec un GNG. Les GNG n'ayant pas une topologie carrée comme les SOM, il suffit de mettre au carré la taille de la carte pour obtenir le nombre de neurones utilisés par le GNG.}\label{fig:res:F-mesure3D-baselineGNG}
+		\caption[Nombre de neurones et de taille des imagettes, GNG/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec un GNG. Les GNG n'ayant pas une topologie carrée comme les SOM, il suffit de mettre au carré la taille de la carte pour obtenir le nombre de neurones utilisés par le GNG.}\label{fig:res:F-mesure3D-baselineGNG}
 	\end{figureth}
 
 	Les résultats pour les GNG de la figure \ref{fig:res:F-mesure3D-baselineGNG} montrent un comportement beaucoup plus chaotique. Les variations sont particulièrement grandes entre plusieurs exécutions, mais on peut tout de même discerner les mêmes préférences de tailles d'imagettes que pour les SOM. \textit{Pedestrians} préfère encore des imagettes petites, et \textit{PETS2006} des imagettes grandes. Cela semble indiquer que ces préférences ne sont pas dépendantes des modèles (SOM, GNG) mais bien seulement de la vidéo et/ou de la nouveauté présente dans la vidéo. La valeur des F-mesure maximales est similaire entre les GNG et les SOM. 
 
-	[figures PSNR]
+	\begin{figureth}
+		\begin{subfigureth}{.45\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_highway}\caption{Highway}
+		\end{subfigureth}
+		\hfill
+		\begin{subfigureth}{.45\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_office}\caption{Office}
+		\end{subfigureth}
+		\begin{subfigureth}{.45\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_pedestrians}\caption{Pedestrians}
+		\end{subfigureth}
+		\hfill
+		\begin{subfigureth}{.45\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_PETS2006}\caption{PETS2006}
+		\end{subfigureth}
+		\caption[Nombre de neurones et de taille des imagettes, PSNR/SOM/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:F-mesure3D-baselineSOM}
+	\end{figureth}
 	
 	\subsubsection{Global}
 
 	\begin{figureth}
-		\begin{subfigureth}{.49\textwidth}
-			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/full_som}\caption{SOM}
+		\begin{subfigureth}{.45\textwidth}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/global}\caption{SOM}
 		\end{subfigureth}
-		\begin{subfigureth}{.49\textwidth}
+		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/full_gng_flat}\caption{GNG}
 		\end{subfigureth}
-		\caption[F-mesure en fonction du nombre de neurones et de la taille des imagettes, global]{Moyenne des F-mesure en fonction du nombre de neurones et de la taille des imagettes pour l'ensemble des vidéos de notre jeu de données. Le graphe des GNG a été aplati pour que l'on puisse voir l'intégralité de celui-ci.}\label{fig:res:F-mesure3D-global}
+		\caption[Nombre de neurones et de taille des imagettes, Global]{Moyenne des F-mesure en fonction du nombre de neurones et de la taille des imagettes pour l'ensemble des vidéos de notre jeu de données. Le graphe des GNG a été aplati pour que l'on puisse voir l'intégralité de celui-ci.}\label{fig:res:F-mesure3D-global}
 	\end{figureth}
 
 	Lorsque sont agrégés toutes les séquences vidéos, les graphes de la figure \ref{fig:res:F-mesure3D-global} montrent les tendances globales sur notre modèle. La détection de nouveauté avec la SOM fonctionne le mieux avec des tailles d'imagettes proches de $20\times20$ au delà, les performances stagnent, voire décroissent. Augmenter le nombre de neurones est quant à lui toujours bénéfique, mais amène des gains toujours plus réduits. Les résultats pour les GNG sont plus étranges, car ils sont à leur maximum pour des valeurs intermédiaires de neurones et d'imagettes, plus petites que celles de la SOM.
 
-	\subsection{Résultats complets}
+	\subsection{Résultats complets}\label{sec:res:stats}
 
 	\begin{tableth}
     \begin{tabular}{|c|c|c|c|c|c|c|}
 		\hline
-		& \multicolumn{3}{c|}{SOM Global} & SOM Max & GNG Global & GNG Max\\
+		& \multicolumn{3}{c|}{SOM} & SOM Max & GNG & GNG Max\\
         \hline
         \textbf{Categories}/vidéos & Précision & Rappel & F-mesure & F-mesure & F-mesure & F-mesure\\
         \hline
-        \textbf{Baseline} & 62.1\% & 63.8\% & 61.5\% & & &\\
+        \textbf{Baseline} & 59.2\% & 72.9\% & 63.9\% & 73.4\% & &\\
 		\hline
-		Highway & 63.5\% & 66.4\% & 64.9\%& & &\\
-		Office & 74.1\% & 61.9\% & 67.5\%& & &\\
-		Pedestrians & 51.0\% & 83.9\% & 63.5\% & & &\\
-		PETS2006 & 59.8\% & 43.1\% & 50.1\% & & &\\
+		Highway & 63.9\% & 75.7\% & 69.3\% & 78.9\% & &\\
+		Office & 71.2\% & 71.0\% & 71.1\% & 74.4\% & &\\
+		Pedestrians & 41.4\% & 87.0\% & 56.1\% & 76.7\% & &\\
+		PETS2006 & 60.1\% & 57.9\% & 59.0\% & 63.7\% & &\\
 		\hline
-        \textbf{Bad weather} & 37.1\% & 47.1\% & 40.0\% & & &\\
+        \textbf{Bad weather} & 32.6\% & 57.8\% & 38.9\% & 48.0\% & &\\
 		\hline
-		Blizzard & 33.6\% & 40.6\% & 36.7\% & & &\\
-		Skating & 71.6\% & 60.8\% & 65.7\% & & &\\
-		Snowfall & 21.9\% & 45.9\% & 29.6\% & & &\\
-		Wet snow & 21.4\% & 41.1\% & 28.0\% & & &\\
+blizzard & 19.4\% & 48.9\% & 27.8\% & 37.3\% & &\\
+skating & 72.5\% & 68.3\% & 70.3\% & 72.7\% & &\\
+snowFall & 17.1\% & 57.6\% & 26.4\% & 37.9\% & &\\
+wetSnow & 21.5\% & 56.4\% & 31.1\% & 44.2\% & &\\
 		\hline
-        \textbf{Camera jitters} & 42.4\% & 55.5\% & 47.1\% & & &\\
+        \textbf{Camera jitters} & 37.6\% & 65.2\% & 46.5\% & 51.7\% & &\\
 		\hline
-		Badminton & 49.9\% & 72.3\% & 59.0\% & & &\\
-		Boulevard & 52.7\% & 41.8\% & 46.6\% & & &\\
-		Sidewalk & 22.9\% & 33.1\% & 27.1\% & & &\\
-		Traffic & 44.2\% & 74.7\% & 55.5\% & & &\\
+badminton & 49.2\% & 81.3\% & 61.3\% & 68.6\% & &\\
+boulevard & 47.9\% & 53.1\% & 50.4\% & 51.8\% & &\\
+sidewalk & 14.7\% & 45.4\% & 22.2\% & 27.4\% & &\\
+traffic & 38.5\% & 80.9\% & 52.1\% & 59.0\% & &\\
+
 		\hline
-        \textbf{Dynamic bkg} & 10.1\% & 57.8\% & 16.3\% & & &\\
+        \textbf{Dynamic bkg} & 8.3\% & 67.1\% & 14.1\% & 30.1\% & &\\
 		\hline
-		Boats & 3.7\% & 70.7\% & 7.0\% & & &\\
-		Canoe & 20.8\% & 89.2\% & 33.7\% & & &\\
-		Fall & 9.3\% & 37.4\% & 14.8\% & & &\\
-		Fountain1 & 1.4\% & 36.7\% & 2.6\% & & &\\
-		Fountain2 & 4.2\% & 45.5\% & 7.7\% & & &\\
-		Overpass & 21.2\% & 66.9\% & 32.2\% & & &\\
+boats & 2.7\% & 79.8\% & 5.2\% & 34.2\% & &\\
+canoe & 16.7\% & 92.4\% & 28.2\% & 56.3\% & &\\
+fall & 8.8\% & 54.1\% & 15.2\% & 21.2\% & &\\
+fountain01 & 1.1\% & 43.5\% & 2.1\% & 3.1\% & &\\
+fountain02 & 3.1\% & 55.3\% & 5.9\% & 21.2\% & &\\
+overpass & 17.2\% & 77.8\% & 28.2\% & 44.6\% & &\\
+
 		\hline
-        \textbf{Night videos} & 33.4\% & 40.5\% & 34.2\% & & &\\
+        \textbf{Night videos} & 27.8\% & 47.1\% & 32.1\% & 38.8\% & &\\
 		\hline
-		Bridge entry & 9.7\% & 27.4\% & 14.2\% & & &\\
-		Busy boulevard & 47.3\% & 25.0\% & 32.7\% & & &\\
-		Fluid highway & 21.7\% & 42.6\% & 28.7\% & & &\\
-		Street corner & 46.7\% & 60.2\% & 52.6\% & & &\\
-		Tram station & 44.8\% & 33.8\% & 38.5\% & & &\\
-		Winter street & 30.4\% & 53.7\% & 38.8\% & & &\\
+bridgeEntry & 10.8\% & 33.9\% & 16.4\% & 26.3\% & &\\
+busyBoulvard & 40.5\% & 28.9\% & 33.8\% & 39.5\% & &\\
+fluidHighway & 19.1\% & 55.7\% & 28.5\% & 31.2\% & &\\
+streetCornerAtNight & 21.8\% & 59.7\% & 31.9\% & 39.7\% & &\\
+tramStation & 47.9\% & 41.1\% & 44.2\% & 56.4\% & &\\
+winterStreet & 26.7\% & 63.4\% & 37.6\% & 39.8\% & &\\
+
 		\hline
-        \textbf{Shadow} & 51.3\% & 52.1\% & 49.7\% & & &\\
+        \textbf{Shadow} & 48.6\% & 64.2\% & 52.8\% & 59.8\% & &\\
 		\hline
-		Backdoor & 32.4\% & 63.1\% & 42.8\% & & &\\
-		Bungalows & 56.0\% & 39.5\% & 46.3\% & & &\\
-		Bus station & 70.4\% & 60.4\% & 65.0\% & & &\\
-		Copy machine & 79.5\% & 52.4\% & 63.1\% & & &\\
-		Cubicle & 18.3\% & 29.1\% & 22.4\% & & &\\
-		People in shade & 51.5\% & 67.8\% & 58.5\% & & &\\
+backdoor & 27.1\% & 76.2\% & 40.0\% & 49.4\% & &\\
+bungalows & 54.9\% & 49.8\% & 52.2\% & 72.1\% & &\\
+busStation & 64.6\% & 67.3\% & 66.0\% & 66.1\% & &\\
+copyMachine & 77.7\% & 67.1\% & 72.0\% & 79.2\% & &\\
+cubicle & 17.0\% & 42.9\% & 24.3\% & 26.9\% & &\\
+peopleInShade & 50.0\% & 81.7\% & 62.1\% & 65.0\% & &\\
+
 		\hline
-        \textbf{Thermal} & 56.1\% & 60.3\% & 55.5\% & & &\\
+        \textbf{Thermal} & 52.0\% & 66.2\% & 54.0\% & 65.5\% & &\\
 		\hline
-		Corridor & 43.1\% & 84.5\% & 57.0\% & & &\\
-		Dining room & 71.6\% & 46.8\% & 56.6\% & & &\\
-		Lakeside & 18.5\% & 38.3\% & 24.9\% & & &\\
-		Library & 88.6\% & 86.2\% & 87.4\% & & &\\
-		Park & 58.6\% & 45.8\% & 51.4\% & & &\\
+corridor & 32.4\% & 87.3\% & 47.2\% & 75.4\% & &\\
+diningRoom & 67.4\% & 55.7\% & 61.0\% & 70.8\% & &\\
+lakeSide & 13.8\% & 53.0\% & 21.9\% & 33.4\% & &\\
+library & 85.9\% & 88.4\% & 87.1\% & 91.5\% & &\\
+park & 60.7\% & 46.4\% & 52.6\% & 56.4\% & &\\
+
 		\hline
-        \textbf{Global} & 37.9\% & 54.9\% & 39.8\% & & & \\
+        \textbf{Global} & 41.3\% & 62.3\% & 43.5\% & 54.6\% & &\\
     	\hline
 	\end{tabular}
 	\caption{Résultats complets sur CDNET de notre détection de nouveauté}
@@ -666,26 +708,28 @@
         \hline
         \textbf{Categories}/vidéos & Précision & Rappel & F-mesure & F-mesure & F-mesure & F-mesure\\
 		\hline
-        \textbf{Turbulence} & 10.6\% & 62.5\% & 13.7\% & & &\\
+        \textbf{Turbulence} & 8.7\% & 69.6\% & 12.4\% & 35.1\% & &\\
 		\hline
-		Turbulence0 & 2.2\% & 77.1\% & 4.3\% & & &\\
-		Turbulence1 & 8.6\% & 58.5\% & 15.0\% & & &\\
-		Turbulence2 & 1.5\% & 78.4\% & 2.9\% & & &\\
-		Turbulence3 & 30.2\% & 36.0\% & 32.7\% & & &\\
+turbulence0 & 1.5\% & 82.7\% & 3.0\% & 28.0\% & &\\
+turbulence1 & 6.0\% & 68.2\% & 11.0\% & 34.1\% & &\\
+turbulence2 & 1.3\% & 81.8\% & 2.6\% & 33.1\% & &\\
+turbulence3 & 25.9\% & 45.6\% & 33.1\% & 45.1\% & &\\
+
 		\hline
-		\textbf{Inter. motion [r]} & ? & ? & ? & & &\\
+		\textbf{Inter. motion [r]} & 68.0\% & 46.7\% & 52.0\% & 69.0\% & &\\
 		\hline
-		Street light & ? & ? & ? & & &\\
-		Sofa & ? & ? & ? & & &\\
-		Tramstop & ? & ? & ? & & &\\
+sofa & 61.1\% & 49.0\% & 54.4\% & 67.7\% & &\\
+streetLight & 64.6\% & 68.4\% & 66.4\% & 85.1\% & &\\
+tramstop & 78.4\% & 22.7\% & 35.3\% & 54.3\% & &\\
 		\hline
-        \textbf{Low framerate [r]} & ? & ? & ? & & &\\
+        \textbf{Low framerate [r]} & 70.5\% & 66.4\% & 68.0\% & 74.3\% & &\\
 		\hline
-		Turnpike & ? & ? & ? & & &\\
-		Tram crossroad & ? & ? & ? & & &\\
-		Tunnel exit & ? & ? & ? & & &\\
+tramCrossroad & 61.4\% & 72.9\% & 66.6\% & 68.7\% & &\\
+tunnelExit & 77.3\% & 63.7\% & 69.9\% & 75.4\% & &\\
+turnpike & 73.0\% & 62.7\% & 67.4\% & 78.7\% & &\\
+
         \hline
-        \textbf{Global} & 37.9\% & 54.9\% & 39.8\% & & & \\
+        \textbf{Global} & 41.3\% & 62.3\% & 43.5\% & 54.6\% & &\\
     	\hline
 	\end{tabular}
 	\caption{Résultats complets sur CDNET de notre détection de nouveauté - Suite}
@@ -718,7 +762,7 @@
 		PBAS & 70.9\% & 50.8\% & 55.1\% \\
 		SOBS & 66.7\% & 60.1\% & 56.4\% \\
 		\hline
-		SOM Global & 37.9\% & 54.9\% & 39.8\% \\
+		SOM Global & 41.3\% & 62.3\% & 43.5\% \\
 		\hline
 	\end{tabular}
 	\caption{Comparatif avec d'autres modèles de détection de changement sur CDNET}
