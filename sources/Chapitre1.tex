@@ -235,28 +235,33 @@
 	\footnotetext{Images provenant de https://github.com/AdrienGuille/GrowingNeuralGas, licence MIT}	
 
 	Following the seminal work of \cite{Fix:dnf:2011}, we choose to couple our autonomous novelty detection tool to a robust bio-inspired tracking technique based on Dynamic Neural Fields (DNF). DNF are populations of partial differential equations first mathematically analyzed by \cite{amari:dnf:1977} in a continuous framework. We use a discrete DNF built from populations of excitatory and inhibitory neurons that interact continuously, with a on-center off-surround approach modeled as a synaptic kernel computed as a difference of gaussians applied to the distance between neurons in the neural map. These DNF have been successfully applied to sequential visual exploration of an environment \cite{Fix:dnf:2011} or in \cite{rougier:attention:2005}, with great robustness properties that can even improve with some adaptation like the use of simple spiking neurons \cite{vazquez:dnf:2011}. 
+	Continuous Neural Fields Theory (CNFT) has lead to the development of two dimensional Dynamic Neural Fields (DNF) \cite{Taylor2D}. Neural fields are models that represent the evolution of a population of neurons. In our case, we use a two dimensional DNF.
 
 	\subsubsection{Fonctionnement}
 
-	Continuous Neural Fields Theory (CNFT) has lead to the development of two dimensional Dynamic Neural Fields (DNF) \cite{Taylor2D}. Neural fields are models that represent the evolution of a population of neurons. In our case, we use a two dimensional DNF. The number of neurons is dependent and equal to the size of the input map, because neurons are connected in a retinotopic way to afferent inputs, and are connected in an all-to-all connection scheme between them. All neurons also have a real value attached to them that we call potential. This potential $u(x,t)$, with $x$ being the neuron position in the field and $t$ the time of the simulation, is ruled by the following differential equation :
+	Comme pour les SOM, les Champs neuronaux dynamiques (DNF) peuvent être déclinés en plusieurs dimensions. Nous n'utiliserons que des DNF d'une ou deux dimensions dans cette thèse. Les neurones d'un DNF sont connectés de façon rétinotopique aux entrées, par conséquent, la taille et le nombre de neurones est définie par la taille de la carte d'entrée. Chaque neurone est également connecté à tous les autres neurones. Enfin, tous les neurones possèdent un potentiel, qui est représenté par un nombre réel. Ce potentiel est noté $u(x,t)$, $x$ étant la position du neurone dans le champ et $t$ un instant de la simulation. La valeur du potentiel est définie par l'équation différentielle suivante :
 
-$$\tau \frac{\partial u(x, t)}{\partial t} = -u(x,t)+\int u(x',t)\omega(||x-x'||)\delta y + \text{Input}(x,t)$$
+	\begin{equation}
+		\tau \frac{\partial u(x, t)}{\partial t} = -u(x,t)+\int u(x',t)\omega(||x-x'||)\delta y + \text{Input}(x,t)
+	\end{equation}\label{eq:dnf}
 
-With :
-\begin{itemize}
-    \item $\tau$ is the time constant.
-    \item $-u(x,t)$ is the decay term. It is meant to suppress already activated neurons when there is no input or lateral excitation.
-    \item $\omega(||x-x'||)$ is the lateral interaction. It represents the effect of the other neurons onto this neuron's potential. We are using a difference of gaussian with the excitatory gaussian part being narrow with high intensity and the inhibitory one being wide with low intensity. This leads to close neurons having an excitatory effect onto each other and far away neurons inhibiting themselves.
-    \item $Input(x,t)$ is the current value of the afferent input extracted from the input map for this neuron.
-\end{itemize}
+	Avec :
+	\begin{itemize}
+    	\item $\tau$ est une constante qui règle la vitesse d'adaptation du DNF.
+    	\item $-u(x,t)$ est le terme de fuite. Son rôle est d'inhiber des neurones activés lorsqu'il n'y a plus d'activations par l'entrée ou par d'autres neurones.
+		\item $\omega(||x-x'||)$ est l'intéraction latérale. Il représente l'effet d'autres neurones sur le potentiel de ce neurone. Nous utilisons une différence de gaussiennes. La gaussienne la plus pointue est excitatrice et la gaussienne plus allongée est inhibitrice. Cela a pour effet que les neurones proches sont excitateurs et les neurones lointains inhibiteurs. On appelle également les neurones ayant un impact excitateur ou inhibiteurs des neurones afférents.
+		\item $Input(x,t)$ est la valeur au temps $t$ de l'entrée à la position $x$. 
+	\end{itemize}
 
-For the sake of simplicity and computability, we implement a spatially and temporaly discretized version of the previous formula. It is obtained by handling potentials of a discrete set of neurons (neural map instead of neural manifold) and by using a simple Euler method to estimate the state of $u(x,t+\Delta t)$ knowing $u(x,t)$:
+	Par souci de simplicité et de calculabilité, nous avons implémenté une version spatialement et temporellement discrétisée de l'équation \ref{eq:dnf}. Elle est obtenue en manipulant les potentiels d'un ensemble discret de neurones (carte neuronale au lieu de champ neuronal) et en utilisant une simple méthode d'Euler pour estimer l'état de $u(x,t+\Delta t)$ en connaissant $u(x,t)$ :
 
-$$u(x, t+\Delta t) = u(x, t) +\frac{\Delta t\left(-u(x, t)+\sum u(x', t)\omega(||x-x'||) + \text{Input}(x, t+\Delta t)\right)}{\tau}$$
+	\begin{equation}
+		u(x, t+\Delta t) = u(x, t) +\frac{\Delta t\left(-u(x, t)+\sum u(x', t)\omega(||x-x'||) + \text{Input}(x, t+\Delta t)\right)}{\tau}
+	\end{equation}
 
-$\Delta t$ is the time step between two estimations, it can be the same for all neurons (synchronous) or different each time (asynchronous). It should be noted that in the original DNF formula, there are more parameters such as resting potential but since we do not use them here, we did not mention them.
+	$\Delta t$ est le pas de temps entre deux estimations, il peut être le même pour tous les neurones (synchrone) ou différent à chaque fois (asynchrone). Il convient de noter que dans la formule DNF originale, il existe d'autres paramètres tels que le potentiel de repos, mais comme nous ne les utilisons pas ici, nous ne les avons pas mentionnés.
 
-It is often difficult to understand how a DNF will behave just from the formula. We have set it up with optimized parameters in order to have a winner-takes-all behaviour where the most prominent and spatially coherent features in the input map create a local bubble of activation in the neural map and suppress the ability of other such bubbles to appear elsewhere in the map. 
+	Il est souvent difficile de comprendre le comportement d'un DNF à partir de sa formule. Nous l'avons configuré avec des paramètres optimisés afin d'obtenir un comportement de type "winner-takes-all" où les caractéristiques les plus proéminentes et spatialement cohérentes dans la carte d'entrée créent une bulle d'activation locale dans la carte neuronale et suppriment la capacité d'autres bulles de ce type à apparaître ailleurs dans la carte.
 
 \bibliographystyle{francaissc}
 \bibliography{Chapitre1/Biblio}
