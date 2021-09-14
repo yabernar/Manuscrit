@@ -124,14 +124,9 @@
 
 	\footnotetext{Source de l'image : http://scholarpedia.org/article/Kohonen\_network licence CC-BY-NC}
 
-	Le but premier de Kohonen était de présenter un modèle capable de représenter informatiquement l'organisation spatiale des informations dans le cortex humain \cite{kohonen-memory}. 
-	
-	Il s'inspira pour cela d'un concept du domaine des neurosciences, les colonnes corticales, qui sont des groupes de neurones arrangés verticalement et qui réagissent tous au même stimulus.
+	Le but premier de Kohonen était de présenter un modèle capable de représenter informatiquement l'organisation spatiale des informations dans le cortex humain \cite{kohonen-memory}. Il s'inspira pour cela d'un concept du domaine des neurosciences, les colonnes corticales, qui sont des groupes de neurones arrangés verticalement et qui réagissent tous au même stimulus.
 
-\subsubsection{Evolutions et utilisation contemporaine}
 	Il y a eu de nombreuses évolutions pendant près de 40 ans d'existence des SOM. En 2002, une bibliographie recensait 5384 articles scientifiques utilisant les SOM \cite{oja2003bibliography}. Ils étaient estimés à plus de 10000 en 2011 \cite{bilbiography-finuni}. Les domaines d'applications sont très variés, allant du traitement du signal de l'analyse d'image et de la parole, jusqu'à la médecine, l'économie, la finance, l'urbanisme et d'autres encore. Pour chacun de ces domaines il y a plusieurs types d'utilisations de la SOM. Elle peut par exemple être utilisée en tant que méthode de visualisation capable de rendre humainement interprétable des données à très grande dimension en les projetant sur des dimensions plus petites. Mais aussi pour faire des traitements sur des données, par exemple pour faire de la classification non supervisée de caractères, de chiffres ou de phonèmes, ou de la détection d'anomalies entre autres. \cite{cottrell2018self} présente une revue récente des différentes approches et applications des SOM. 
-
-	[Évolutions et dérivés.]
 
 \subsection{Principes de fonctionnement}
 \subsubsection{Préparation des données}
@@ -165,12 +160,16 @@
 		\item La phase d'adaptation, qui modifie les poids des neurones selon l'équation suivante :
 		\begin{equation}\label{eq:SOM}
 			w_i(t+1) = w_i(t)+\alpha(t)\cdot\Theta(\sigma(t),d_{i,bmu})\cdot(v-w_i(t))
-		\end{equation} avec $i$ le neurone courant, $w_i$ les poids de ce neurone, $t$ l'itération courante, $\epsilon$ et $\sigma$ des paramètres de la SOM définis dans la section \ref{param_som}. $d_{i, bmu}$ est la distance $L^1$ (distance de manhattan) normalisée entre le neurone $i$ et la BMU pour une SOM en grille. $\Theta$ est une fonction gaussienne centrée normalisée d'écart type $\sigma$. $v$ est la vecteur d'apprentissage.
+		\end{equation} avec $i$ le neurone courant, $w_i$ les poids de ce neurone, $t$ l'itération courante, $\epsilon$ et $\sigma$ des paramètres de la SOM définis dans la section \ref{param_som}. $d_{i, bmu}$ est la distance $L^1$ (distance de manhattan) normalisée entre le neurone $i$ et la BMU pour une SOM en grille. $\Theta$ est une fonction gaussienne centrée normalisée d'écart type $\sigma$. $v$ est le vecteur d'apprentissage.
 	\end{itemize}
 
-	On répète ces deux étapes jusqu'à ce que l'on finisse la dernière époque, et l'apprentissage sera terminé.
+	On répète ces deux étapes jusqu'à ce que l'on finisse la dernière époque, et l'apprentissage sera terminé. Un exemple d'apprentissage est illustré sur la figure \ref{fig:som_app}
 
-	[illustration]
+	\begin{figureth}
+		\includegraphics[width=.9\linewidth]{unfolding}
+		\caption[Apprentissage de SOM]{Apprentissage d'une SOM. Les points bleus sont les vecteurs d'entrée en deux dimensions. Les point rouges les neurones de la SOM et les traits rouges représentent les connexions entre ceux-ci.}\label{fig:som_app}
+	\end{figureth}
+
 
 \subsubsection{Reconstruction}
 	

@@ -17,19 +17,25 @@
 			
 	\section{Introduction}
 
+	Ce chapitre présente notre méthode pour faire de la détection de nouveauté avec les cartes auto-organisatrices (SOM). Ou plus généralement, avec des modèles de quantification vectorielle avec topologie.
+
+	Nous commencerons par montrer différentes façons d'apprendre les images avec des SOM et celle que nous avons choisie. Puis nous introduirons notre méthode de détection de nouveauté en deux parties. D'abord avec quantification vectorielle, et une seconde avec la topologie. Ensuite nous aborderons le protocole expérimental que nous avons mis en œuvre pour évaluer notre modèle. La dernière section présente nos résultats.
+
 	\section{Application aux images}\label{sec:images}
 
 	Il existe de nombreuses possibilités différentes pour apprendre des images avec la quantification vectorielle, dû au grand nombre de façons de découper une image en vecteurs d'apprentissage. Pour présenter l'impact que peut avoir ce découpage, on peut considérer deux extrêmes : apprendre l'image en entier ou apprendre chaque pixel individuellement. Le premier cas peut sembler absurde dans le cas d'une seule image (une base de données d'un seul élément), mais peut présenter un intérêt lorsque l'on considère une suite d'images par exemple. Dans cet exemple, l'environnement appris serait défini par l'entièreté de ce que voit le capteur et tous les changements, où qu'ils soient dans l'image, auraient de l'importance.
 
-	Le second extrême est l'apprentissage au niveau du pixel. Dans cette approche on prend chaque pixel individuel comme un vecteur d'entrée, ce qui rendrait l'espace d'entrée unidimensionnel pour une image en niveau de gris (ou tridimensionnel si l'image est en couleur, plus de détails dans la section \ref{sec:img:colors}). Sur un plan conceptuel, ce choix considère qu'une image est définie uniquement par les couleurs ou luminosités présentes, peu importe leur positions dans celle-ci. C'est utilisé notamment dans la détection de changements dans la littérature. Par exemple dans \cite{maddalena2008self}, et tous ses descendants. Il existe un très grand nombre d'autres découpages possibles entre ces deux extrêmes, chacun représentant une certaine façon de conceptualiser une image et définissant la notion de nouveauté. Celle-ci étant un changement à un quelconque endroit de l'image dans le premier cas, et l'apparition d'une nouvelle couleur dans l'image dans le second.
+	Le second extrême est l'apprentissage au niveau du pixel. Dans cette approche on prend chaque pixel individuel comme un vecteur d'entrée, ce qui rendrait l'espace d'entrée unidimensionnel pour une image en niveau de gris (ou tridimensionnel si l'image est en couleur, plus de détails dans la section \ref{sec:img:colors}). Sur un plan conceptuel, ce choix considère qu'une image est définie uniquement par les couleurs ou luminosités présentes, peu importe leur positions dans celle-ci. C'est utilisé notamment dans SOBS \cite{maddalena2008self}, et tous ses descendants. Il existe un très grand nombre d'autres découpages possibles entre ces deux extrêmes, chacun représentant une certaine façon de conceptualiser une image et définissant la notion de nouveauté. Celle-ci étant un changement à un quelconque endroit de l'image dans le premier cas, et l'apparition d'une nouvelle couleur dans l'image dans le second.
 
 	Il est important donc de considérer le contexte de nos travaux pour définir la façon de représenter une image, notre application étant la detection de nouveauté. Dans ce contexte, nous considérons qu'une image est une combinaison de nombreux éléments plus petits. Par exemple, une photographie d'un lac de montagne \ref{fig:img:nino} peut être décrite comme étant la combinaison d'un élément de lac (avec sa couleur, bleu sombre et sa texture uniforme), d'un élément de plaine herbeuse (verte et uniforme), d'éléments rocailleux qui sont gris et soit uniformes (dans le premier plan) soit plus contrastés en se combinant avec la verdure de la végétation (dans les bords de l'image), et ainsi de suite. Ce découpage "sémantique" de l'image est ce qui permet la détection de nouveauté  de fonctionner, car dans notre cas la nouveauté est par définition ce qui n'est pas déjà dans l'image et donc ne faisant pas partie de ces classes d'éléments. Pour regrouper les parties d'une image appartenant au même élément, il est nécessaire d'avoir une information mise en contexte (un pixel seul ne suffit généralement pas à savoir à quel élément il appartient dans l'image), ce qui implique que les pixels doivent être pris dans leurs environnements locaux pour conserver l'information de voisinage comme la texture par exemple. Nous avons donc choisi de découper l'image en plus petites images à la façon d'une mosaïque, que nous appellerons des imagettes. Ces imagettes (d'une taille arbitraire en hauteur et largeur) conservent l'environnement local tout en étant suffisamment petites pour être précises dans l'espace. Une imagette ne représentera qu'une partie d'un élément et non pas regroupant plusieurs éléments, ce qui réduirait sa capacité de généralisation. Mais elles permettent aussi d'avoir une base d'apprentissage assez étoffée pour tirer parti des propriétés de nos modèles de quantification vectorielle et de leur topologie. La partie pratique de l'apprentissage d'une image, sa représentation et sa reconstruction sont abordés dans la section suivante \ref{sec:img:compression}.
 
 
 	\begin{figureth}
-		\includegraphics[width=\linewidth]{Lac_de_Nino}
-		\caption[Lac de Nino]{Exemple d'image comportant plusieurs éléments notables tels qu'un lac (bleu sombre et uniforme), une plaine herbeuse (verte et uniforme), d'éléments rocailleux qui sont gris et soit uniformes (dans le premier plan) soit plus contrastés en se combinant avec la verdure de la végétation (dans les bords de l'image), et ainsi de suite.[Modifier la figure]}\label{fig:img:nino}
+		\includegraphics[width=\linewidth]{nino_mod}
+		\caption[Lac de Nino]{Exemple d'image comportant plusieurs éléments notables tels qu'un lac (bleu sombre et uniforme), une plaine herbeuse (verte et uniforme), d'éléments rocailleux qui sont gris et soit uniformes (dans le premier plan) soit plus contrastés en se combinant avec la verdure de la végétation (dans les bords de l'image), et ainsi de suite. Une image peut donc être vue comme un ensemble de zones différentes composées d'éléments proches entre eux.\footnotemark}\label{fig:img:nino}
 	\end{figureth}
+
+	\footnotetext{Image source : Lac de Nino, https://fr.wikipedia.org/wiki/Lac\_de\_Nino\#/media/Fichier:Lac\_de\_Nino.jpg, CC BY-SA}
 
 	\subsection{Apprentissage et reconstruction}\label{sec:img:compression}
 	\subsubsection{Apprentissage}
@@ -37,7 +43,7 @@
 
 	Nous avons également choisi de limiter nos tailles d'imagettes à des carrés, avec la hauteur égale à la longueur, pour des raisons de simplicité. Il est possible que des imagettes plus larges que hautes ou plus hautes que larges représentent mieux les éléments de l'image que l'on apprend. Cependant ce serait une préférence spécifique à chaque image et peu généralisable, car si on effectue par exemple une rotation de 90° de l'image, la préférence s'inversera. L'inversement des tailles dans les imagettes carrées ne changeant rien, elles sont pour leur part insensibles aux rotations discrètes de l'image (par pas de 90°).
 
-	Dans la version classique \cite{amerijckx-compression}, le découpage de l'image se fait en mosaïque, sans superpositions entre les imagettes. C'est à dire que chaque pixel n'appartient qu'à une seule imagette. Le processus est montré sur la figure \ref{fig:img:dec} Si les dimensions de l'images ne sont pas un multiple de la taille des imagettes, les pixels en trop sont rognés par la droite et par le bas par souci de simplicité. Les bords d'une image ne contenant en général que peu d'informations.
+	Dans la version classique \cite{amerijckx-compression}, le découpage de l'image se fait en mosaïque, sans superpositions entre les imagettes. C'est à dire que chaque pixel n'appartient qu'à une seule imagette. Le processus est montré sur la figure \ref{fig:img:dec} Si les dimensions de l'images ne sont pas un multiple de la taille des imagettes, les pixels en trop sont rognés par la droite et par le bas. Les bords d'une image ne contenant en général que peu d'informations.
 
 	\begin{figureth}
 		\includegraphics[width=\linewidth]{image_representation}
@@ -77,13 +83,15 @@
 
 	\begin{figureth}
 		\begin{subfigureth}{0.48\textwidth}
-			\includegraphics[width=\linewidth]{fusioned_color}\caption{Couleurs fusionnées}	
+			\includegraphics[width=\linewidth]{flower_low_20}\caption{Couleurs fusionnées}	
 		\end{subfigureth}
 		\begin{subfigureth}{0.48\textwidth}
-			\includegraphics[width=\linewidth]{separated_colors}\caption{Couleurs séparées}	
+			\includegraphics[width=\linewidth]{flower_added_20}\caption{Couleurs séparées}	
 		\end{subfigureth}
-		\caption[Représentation d'une image]{Comparaison entre une image avec des couleurs fusionnées et la même image avec des couleurs séparées qui présente des artefacts visuels.[Faire un exemple plus visuel]}\label{fig:img:rep}
+		\caption[Représentation d'une image]{Comparaison entre une image avec des couleurs fusionnées et la même image avec des couleurs séparées qui présente des artefacts visuels.\footnotemark}\label{fig:img:rep}
 	\end{figureth}
+
+	\footnotetext{Image source: https://unsplash.com/photos/9A\_peGrSbZc}
 
 	\newpage
 	\section{Détection de nouveauté par QVAT : quantification vectorielle et apprentissage topologique}
@@ -101,9 +109,33 @@
 
 	Il y a deux cas à considérer pour chaque imagette de la nouvelle image du capteur : soit la nouvelle imagette est similaire à une partie quelconque de l'arrière-plan appris, soit quelque chose de nouveau est présent dans l'imagette. Dans le premier cas, le neurone représentatif de cette imagette sera proche de celle-ci, c'est à dire que les poids du neurones et de l'imagette seront proches. L'erreur de reconstruction de cette imagette sera faible, surtout si la caméra est statique, mais avec une petite différence toujours présente en raison des pertes de la compression et des changements naturels de l'environnement visuel.
 	
-	Cependant, dans le second cas, le neurone représentatif de l'imagette sera éloigné de celle-ci, dans le sens où ses poids seront très différents de ceux de l'imagette. Car la nouveauté est par définition quelque chose qui n'était pas présent dans l'arrière-plan et donc quelque chose que le modèle n'a pas appris. Cela entraînera à une différence significative lors du calcul de la soustraction entre l'image perçue et sa reconstruction à l'endroit de la nouveauté. Ce processus est illustré dans la figure \ref{fig:img:vq}. 
+	Cependant, dans le second cas, le neurone représentatif de l'imagette sera éloigné de celle-ci, dans le sens où ses poids seront très différents de ceux de l'imagette. Car la nouveauté est par définition quelque chose qui n'était pas présent dans l'arrière-plan et donc quelque chose que le modèle n'a pas appris. Cela entraînera à une différence significative lors du calcul de la soustraction entre l'image perçue et sa reconstruction à l'endroit de la nouveauté. Ce processus est illustré dans la figure \ref{fig:img:vq}, et des exemples de résultats dans la figure \ref{fig:visu-vq}. 
 
 	Ce processus a l'avantage d'être précis au niveau du pixel pour la mise en évidence des changements, avec une certaine limite limite dû à la taille des imagettes. Si les changements sont trop importants et que la nouvelle BMU est trop différente de celle de référence, alors il y a un risque de perte de précision au niveau de l'imagette. Il est aussi théoriquement insensible au déplacement d'objets du fond pour la détection de la nouveauté. Cependant, il peut être bruité en raison de l'apprentissage imparfait de la VQ et de la variabilité naturelle de l'environnement.
+
+	\begin{figureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/diff/bkg}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/diff/in000580}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/diff/dif000580}
+		\end{subfigureth}
+
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/diff/back} \caption{Image de fond}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/diff/in002390} \caption{Image courante}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/diff/dif002390} \caption{Différence avec VQ}
+		\end{subfigureth}
+
+		\caption[Exemples de différence avec quantification vectorielle]{Exemples de différence avec quantification vectorielle. On peut remarquer que la couleur est un facteur important pour savoir si un objet nouveau sera correctement détecté.}\label{fig:visu-vq}
+	\end{figureth}
 
 	\subsection{Détection avec distance neurale}
 
@@ -118,7 +150,31 @@
 
 	Grâce à ces distances, nous pouvons créer une carte de saillance où des distances élevées dans la topologie signifient des changements significatifs dans l'image, car la proximité dans la topologie signifie la proximité dans l'espace d'entrée. Cette méthode permet d'obtenir une carte de saillance plus robuste, avec moins de bruit que la version avec la VQ. La précision est limitée à la taille des imagettes et il n'y a pas d'inhibition pour les éléments déjà connus qui se sont déplacés dans la fond. Le processus est illustré dans la figure \ref{fig:img:topo}.
 
-	\subsection{Considérations pour la combinaison}
+	\begin{figureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/neural/bkg}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/neural/in001438}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/neural/win001438}
+		\end{subfigureth}
+
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/neural/back} \caption{Image de fond}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/neural/in000884} \caption{Image courante}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{example_qvat/neural/win000884} \caption{Distance neurale}
+		\end{subfigureth}
+
+		\caption{Exemples de différence avec distance neurale.}\label{fig:visu-tp}
+	\end{figureth}
+
+	\subsection{Considérations pour la combinaison}\label{seq:combinaison}
 	
 	Une fois les deux cartes de saillance générées, il est nécessaire de les combiner pour n'avoir qu'un seul résultat qui représentera la sortie de notre système. Il existe un très grand nombre de façons de faire cette combinaison, et il existe dans la littérature des modèles qui se basent sur une bonne combinaison de différentes cartes de saillance pour obtenir de meilleurs résultats \cite{bianco2017combination}. Dans notre cas, nous avons préféré utiliser une combinaison simple de nos deux cartes de saillance. C'est à dire qu'elle n'utilise pas de paramètres, pour ne pas ajouter une variable de plus à optimiser. Nous souhaitons aussi bénéficier de la complémentarité des deux cartes de saillance. La solution la plus simple est de multiplier les deux cartes ensemble. Ainsi, sera considéré comme nouveauté dans la carte de sortie, ce qui apparaît comme nouveauté en même temps dans les deux cartes de saillance, sur le principe de $\textit{petit} \times \textit{petit} = \textit{petit}$, $\textit{grand} \times \textit{petit} = \textit{petit}$ et seulement $\textit{grand} \times \textit{grand} = \textit{grand}$. Le bruit présent dans la carte résultant de la quantification vectorielle et qui n'est pas présent dans la carte topologique disparaît de la carte finale. Il en va de même pour les mouvements qui ne sont pas des nouveautés qui apparaissent dans la carte topologique, mais pas dans la carte de quantification vectorielle.
 
@@ -545,7 +601,7 @@
 		La figure de droite montre la f-mesure complète (sur l'ensemble de CDnet) pour ce seuil optimal. Le maximum est obtenu pour $25\times25$ neurones, $20\times20$ pixels et un seuil de $7$.}\label{fig:res:seuil}
 	\end{figureth}
 
-	Le seuil de décision est ce qui permet de passer de notre carte de saillance qui contient des valeurs entre 0 et 255 à la carte de détection binaire. Toutes les valeurs en dessous du seuil seront considérées comme fond, et les valeurs au dessus du seuil comme nouveauté. La figure \ref{fig:res:seuil} présente nos résultats pour le seuil.
+	Le seuil de décision est ce qui permet de passer de notre carte de saillance qui contient des valeurs entre 0 et 255 à la carte de détection binaire. Toutes les valeurs en dessous ou égales au seuil seront considérées comme fond, et les valeurs au dessus du seuil comme nouveauté. La figure \ref{fig:res:seuil} présente nos résultats pour le seuil.
 
 	\subsection{Nombre de neurones et taille des imagettes}
 
@@ -555,21 +611,19 @@
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_highway}\caption{Highway}
 		\end{subfigureth}
-		\hfill
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_office}\caption{Office}
 		\end{subfigureth}
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_pedestrians}\caption{Pedestrians}
 		\end{subfigureth}
-		\hfill
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/som/baseline_PETS2006}\caption{PETS2006}
 		\end{subfigureth}
 		\caption[Nombre de neurones et de taille des imagettes, SOM/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:F-mesure3D-baselineSOM}
 	\end{figureth}
 
-	La figure \ref{fig:res:F-mesure3D-baselineSOM} montre une différence significative de comportement entre les séquences vidéo. La taille des imagettes semble être le facteur le plus important. Pour \textit{Pedestrians} par exemple, une taille d'imagette petite de $8\times8$ donnera les meilleures performances, alors que pour \textit{PETS2006}, ce sont les grosses imagettes de $26\times26$ qui sont optimales. La variabilité est aussi très différente en fonction de la séquence considérée. \textit{Highway} et \textit{Office} sont relativement stables et peu sensibles aux changements de taille d'imagettes et de neurones, tant que ceux-ci ne sont pas trop petits. Au contraire de \textit{PETS2006} pour qui les performances peuvent aller du simple au double en fonction de la taille choisie.
+	La figure \ref{fig:res:F-mesure3D-baselineSOM} montre une différence significative de comportement entre les séquences vidéo. La taille des imagettes semble être le facteur de variations le plus important. Pour \textit{Pedestrians} par exemple, une taille d'imagette petite de $10\times10$ donnera les meilleures performances, alors que pour \textit{PETS2006}, ce sont les grosses imagettes de $25\times25$ qui sont optimales. La variabilité est aussi très différente en fonction de la séquence considérée. \textit{Highway} et \textit{Office} sont relativement stables et peu sensibles aux changements de taille d'imagettes et de neurones, tant que ceux-ci ne sont pas trop petits. Au contraire de \textit{PETS2006} pour qui les performances peuvent aller du simple au double en fonction de la taille choisie.
 
 	Pour le nombre de neurones, l'optimal semble toujours être du côté où les cartes sont les plus grandes. Cependant les gains apportés par une carte plus grande sont très variables. Généralement importants au début pour une carte petite, les valeurs atteignent rapidement un plateau et n'améliorent que peu la détection de nouveauté. C'est une information importante pour une détection rapide et efficace, car le nombre de neurones dans la carte est un facteur important du coût en calcul de la SOM.
 
@@ -589,39 +643,39 @@
 		\caption[Nombre de neurones et de taille des imagettes, GNG/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec un GNG. Les GNG n'ayant pas une topologie carrée comme les SOM, il suffit de mettre au carré la taille de la carte pour obtenir le nombre de neurones utilisés par le GNG.}\label{fig:res:F-mesure3D-baselineGNG}
 	\end{figureth}
 
-	Les résultats pour les GNG de la figure \ref{fig:res:F-mesure3D-baselineGNG} montrent un comportement beaucoup plus chaotique. Les variations sont particulièrement grandes entre plusieurs exécutions, mais on peut tout de même discerner les mêmes préférences de tailles d'imagettes que pour les SOM. \textit{Pedestrians} préfère encore des imagettes petites, et \textit{PETS2006} des imagettes grandes. Cela semble indiquer que ces préférences ne sont pas dépendantes des modèles (SOM, GNG) mais bien seulement de la vidéo et/ou de la nouveauté présente dans la vidéo. La valeur des F-mesure maximales est similaire entre les GNG et les SOM. 
+	Les résultats pour les GNG de la figure \ref{fig:res:F-mesure3D-baselineGNG} montrent un comportement beaucoup plus chaotique. Les variations sont particulièrement grandes entre plusieurs exécutions, mais on peut tout de même discerner les mêmes préférences de tailles d'imagettes que pour les SOM. \textit{Pedestrians} préfère encore des imagettes petites, et \textit{PETS2006} des imagettes grandes. Cela semble indiquer que ces préférences ne sont pas dépendantes des modèles (SOM, GNG) mais bien seulement de la vidéo ou de la nouveauté présente dans la vidéo.
 
 	\begin{figureth}
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_highway}\caption{Highway}
 		\end{subfigureth}
-		\hfill
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_office}\caption{Office}
 		\end{subfigureth}
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_pedestrians}\caption{Pedestrians}
 		\end{subfigureth}
-		\hfill
 		\begin{subfigureth}{.45\textwidth}
 			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/psnr/baseline_PETS2006}\caption{PETS2006}
 		\end{subfigureth}
-		\caption[Nombre de neurones et de taille des imagettes, PSNR/SOM/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:F-mesure3D-baselineSOM}
+		\caption[Nombre de neurones et de taille des imagettes, PSNR/SOM/baseline]{PSNR en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec une SOM.}\label{fig:res:psnr-baselineSOM}
 	\end{figureth}
+
+	La variation du PSNR est montrée dans la figure \ref{fig:res:psnr-baselineSOM}. On peut y observer que les préférences pour la compression sont les mêmes pour toutes les vidéos, et donc différentes des préférences pour les F-mesures. La compression donne le meilleur résultat pour des petites imagettes de $5\times5$ et s'améliore aussi légèrement avec le nombre de neurones. La conclusion est que la qualité de compression et la détection de nouveauté ne sont pas corrélées. Améliorer le résultat de la compression n'amènera ainsi pas forcément des gains au niveau de la détection de nouveauté.
 	
 	\subsubsection{Global}
 
 	\begin{figureth}
 		\begin{subfigureth}{.45\textwidth}
-			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/global}\caption{SOM}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/global_som}\caption{SOM}
 		\end{subfigureth}
 		\begin{subfigureth}{.45\textwidth}
-			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/full_gng_flat}\caption{GNG}
+			\includegraphics[width=\linewidth]{resultats/neurones_imagettes/global_gng}\caption{GNG}
 		\end{subfigureth}
-		\caption[Nombre de neurones et de taille des imagettes, Global]{Moyenne des F-mesure en fonction du nombre de neurones et de la taille des imagettes pour l'ensemble des vidéos de notre jeu de données. Le graphe des GNG a été aplati pour que l'on puisse voir l'intégralité de celui-ci.}\label{fig:res:F-mesure3D-global}
+		\caption[Nombre de neurones et de taille des imagettes, Global]{Moyenne des F-mesure en fonction du nombre de neurones et de la taille des imagettes pour l'ensemble des vidéos de notre jeu de données.}\label{fig:res:F-mesure3D-global}
 	\end{figureth}
 
-	Lorsque sont agrégés toutes les séquences vidéos, les graphes de la figure \ref{fig:res:F-mesure3D-global} montrent les tendances globales sur notre modèle. La détection de nouveauté avec la SOM fonctionne le mieux avec des tailles d'imagettes proches de $20\times20$ au delà, les performances stagnent, voire décroissent. Augmenter le nombre de neurones est quant à lui toujours bénéfique, mais amène des gains toujours plus réduits. Les résultats pour les GNG sont plus étranges, car ils sont à leur maximum pour des valeurs intermédiaires de neurones et d'imagettes, plus petites que celles de la SOM.
+	Lorsque sont agrégés toutes les séquences vidéos, les graphes de la figure \ref{fig:res:F-mesure3D-global} montrent les tendances globales sur notre modèle. La détection de nouveauté avec la SOM fonctionne le mieux avec des tailles d'imagettes proches de $20\times20$. Augmenter le nombre de neurones est quant à lui toujours bénéfique, mais amène des gains toujours plus réduits. Les résultats pour les GNG sont plus étranges, car ils sont à leur maximum pour des valeurs intermédiaires de neurones et d'imagettes, plus petites que celles de la SOM. Ce peut être cependant qu'un résultat de la forte variabilité observée dans les vidéos individuelles qui se répercute dans la moyenne globale.
 
 	\subsection{Résultats complets}\label{sec:res:stats}
 
@@ -632,68 +686,63 @@
         \hline
         \textbf{Categories}/vidéos & Précision & Rappel & F-mesure & F-mesure & F-mesure & F-mesure\\
         \hline
-        \textbf{Baseline} & 59.2\% & 72.9\% & 63.9\% & 73.4\% & &\\
+        \textbf{Baseline} & 59.2\% & 72.9\% & 63.9\% & 73.4\% & 67.0\% & 76.4\% \\
 		\hline
-		Highway & 63.9\% & 75.7\% & 69.3\% & 78.9\% & &\\
-		Office & 71.2\% & 71.0\% & 71.1\% & 74.4\% & &\\
-		Pedestrians & 41.4\% & 87.0\% & 56.1\% & 76.7\% & &\\
-		PETS2006 & 60.1\% & 57.9\% & 59.0\% & 63.7\% & &\\
+		Highway & 63.9\% & 75.7\% & 69.3\% & 78.9\% & 75.9\% & 83.2\% \\
+		Office & 71.2\% & 71.0\% & 71.1\% & 74.4\% & 75.9\% & 77.8\% \\
+		Pedestrians & 41.4\% & 87.0\% & 56.1\% & 76.7\% & 60.0\% & 78.4\% \\
+		PETS2006 & 60.1\% & 57.9\% & 59.0\% & 63.7\% & 56.2\% & 66.4\% \\
 		\hline
-        \textbf{Bad weather} & 32.6\% & 57.8\% & 38.9\% & 48.0\% & &\\
+        \textbf{Bad weather} & 32.6\% & 57.8\% & 38.9\% & 48.0\% & 34.8\% & 54.5\% \\
 		\hline
-blizzard & 19.4\% & 48.9\% & 27.8\% & 37.3\% & &\\
-skating & 72.5\% & 68.3\% & 70.3\% & 72.7\% & &\\
-snowFall & 17.1\% & 57.6\% & 26.4\% & 37.9\% & &\\
-wetSnow & 21.5\% & 56.4\% & 31.1\% & 44.2\% & &\\
+		Blizzard & 19.4\% & 48.9\% & 27.8\% & 37.3\% & 14.4\% & 47.8\% \\
+		Skating & 72.5\% & 68.3\% & 70.3\% & 72.7\% & 74.3\% & 76.1\% \\
+		SnowFall & 17.1\% & 57.6\% & 26.4\% & 37.9\% & 24.9\% & 45.9\% \\
+		WetSnow & 21.5\% & 56.4\% & 31.1\% & 44.2\% & 25.7\% & 48.1\% \\
 		\hline
-        \textbf{Camera jitters} & 37.6\% & 65.2\% & 46.5\% & 51.7\% & &\\
+        \textbf{Camera jitters} & 37.6\% & 65.2\% & 46.5\% & 51.7\% & 36.6\% & 52.3\% \\
 		\hline
-badminton & 49.2\% & 81.3\% & 61.3\% & 68.6\% & &\\
-boulevard & 47.9\% & 53.1\% & 50.4\% & 51.8\% & &\\
-sidewalk & 14.7\% & 45.4\% & 22.2\% & 27.4\% & &\\
-traffic & 38.5\% & 80.9\% & 52.1\% & 59.0\% & &\\
-
+		Badminton & 49.2\% & 81.3\% & 61.3\% & 68.6\% & 62.1\% & 68.9\% \\
+		Boulevard & 47.9\% & 53.1\% & 50.4\% & 51.8\% & 34.7\% & 51.6\% \\
+		Sidewalk & 14.7\% & 45.4\% & 22.2\% & 27.4\% & 14.5\% & 30.9\% \\
+		Traffic & 38.5\% & 80.9\% & 52.1\% & 59.0\% & 35.1\% & 57.9\% \\
 		\hline
-        \textbf{Dynamic bkg} & 8.3\% & 67.1\% & 14.1\% & 30.1\% & &\\
+        \textbf{Dynamic bkg} & 8.3\% & 67.1\% & 14.1\% & 30.1\% & 12.4\% & 40.0\% \\
 		\hline
-boats & 2.7\% & 79.8\% & 5.2\% & 34.2\% & &\\
-canoe & 16.7\% & 92.4\% & 28.2\% & 56.3\% & &\\
-fall & 8.8\% & 54.1\% & 15.2\% & 21.2\% & &\\
-fountain01 & 1.1\% & 43.5\% & 2.1\% & 3.1\% & &\\
-fountain02 & 3.1\% & 55.3\% & 5.9\% & 21.2\% & &\\
-overpass & 17.2\% & 77.8\% & 28.2\% & 44.6\% & &\\
-
+		Boats & 2.7\% & 79.8\% & 5.2\% & 34.2\% & 4.2\% & 62.8\% \\
+		Canoe & 16.7\% & 92.4\% & 28.2\% & 56.3\% & 26.0\% & 74.2\% \\
+		Fall & 8.8\% & 54.1\% & 15.2\% & 21.2\% & 8.5\% & 18.0\% \\
+		Fountain01 & 1.1\% & 43.5\% & 2.1\% & 3.1\% & 1.9\% & 9.8\% \\
+		Fountain02 & 3.1\% & 55.3\% & 5.9\% & 21.2\% & 5.0\% & 19.5\% \\
+		Overpass & 17.2\% & 77.8\% & 28.2\% & 44.6\% & 28.7\% & 55.7\% \\
 		\hline
-        \textbf{Night videos} & 27.8\% & 47.1\% & 32.1\% & 38.8\% & &\\
+        \textbf{Night videos} & 27.8\% & 47.1\% & 32.1\% & 38.8\% & 32.0\% & 37.1\% \\
 		\hline
-bridgeEntry & 10.8\% & 33.9\% & 16.4\% & 26.3\% & &\\
-busyBoulvard & 40.5\% & 28.9\% & 33.8\% & 39.5\% & &\\
-fluidHighway & 19.1\% & 55.7\% & 28.5\% & 31.2\% & &\\
-streetCornerAtNight & 21.8\% & 59.7\% & 31.9\% & 39.7\% & &\\
-tramStation & 47.9\% & 41.1\% & 44.2\% & 56.4\% & &\\
-winterStreet & 26.7\% & 63.4\% & 37.6\% & 39.8\% & &\\
-
+		BridgeEntry & 10.8\% & 33.9\% & 16.4\% & 26.3\% & 12.9\% & 21.5\% \\
+		BusyBoulvard & 40.5\% & 28.9\% & 33.8\% & 39.5\% & 31.5\% & 33.1\% \\
+		FluidHighway & 19.1\% & 55.7\% & 28.5\% & 31.2\% & 29.6\% & 30.6\% \\
+		StreetCornerAtNight & 21.8\% & 59.7\% & 31.9\% & 39.7\% & 29.6\% & 35.7\% \\
+		TramStation & 47.9\% & 41.1\% & 44.2\% & 56.4\% & 49.5\% & 62.1\% \\
+		WinterStreet & 26.7\% & 63.4\% & 37.6\% & 39.8\% & 38.6\% & 39.7\% \\
 		\hline
-        \textbf{Shadow} & 48.6\% & 64.2\% & 52.8\% & 59.8\% & &\\
+        \textbf{Shadow} & 48.6\% & 64.2\% & 52.8\% & 59.8\% & 49.7\% & 62.0\% \\
 		\hline
-backdoor & 27.1\% & 76.2\% & 40.0\% & 49.4\% & &\\
-bungalows & 54.9\% & 49.8\% & 52.2\% & 72.1\% & &\\
-busStation & 64.6\% & 67.3\% & 66.0\% & 66.1\% & &\\
-copyMachine & 77.7\% & 67.1\% & 72.0\% & 79.2\% & &\\
-cubicle & 17.0\% & 42.9\% & 24.3\% & 26.9\% & &\\
-peopleInShade & 50.0\% & 81.7\% & 62.1\% & 65.0\% & &\\
-
+		Backdoor & 27.1\% & 76.2\% & 40.0\% & 49.4\% & 36.6\% & 48.7\% \\
+		Bungalows & 54.9\% & 49.8\% & 52.2\% & 72.1\% & 63.0\% & 72.2\% \\
+		BusStation & 64.6\% & 67.3\% & 66.0\% & 66.1\% & 54.4\% & 66.3\% \\
+		CopyMachine & 77.7\% & 67.1\% & 72.0\% & 79.2\% & 58.9\% & 78.0\% \\
+		Cubicle & 17.0\% & 42.9\% & 24.3\% & 26.9\% & 19.5\% & 39.5\% \\
+		PeopleInShade & 50.0\% & 81.7\% & 62.1\% & 65.0\% & 65.7\% & 67.3\% \\
 		\hline
-        \textbf{Thermal} & 52.0\% & 66.2\% & 54.0\% & 65.5\% & &\\
+        \textbf{Thermal} & 52.0\% & 66.2\% & 54.0\% & 65.5\% & 51.4\% & 66.5\% \\
 		\hline
-corridor & 32.4\% & 87.3\% & 47.2\% & 75.4\% & &\\
-diningRoom & 67.4\% & 55.7\% & 61.0\% & 70.8\% & &\\
-lakeSide & 13.8\% & 53.0\% & 21.9\% & 33.4\% & &\\
-library & 85.9\% & 88.4\% & 87.1\% & 91.5\% & &\\
-park & 60.7\% & 46.4\% & 52.6\% & 56.4\% & &\\
-
+		Corridor & 32.4\% & 87.3\% & 47.2\% & 75.4\% & 26.4\% & 72.8\% \\
+		DiningRoom & 67.4\% & 55.7\% & 61.0\% & 70.8\% & 65.6\% & 72.5\% \\
+		LakeSide & 13.8\% & 53.0\% & 21.9\% & 33.4\% & 14.7\% & 30.4\% \\
+		Library & 85.9\% & 88.4\% & 87.1\% & 91.5\% & 87.8\% & 94.2\% \\
+		Park & 60.7\% & 46.4\% & 52.6\% & 56.4\% & 62.6\% & 62.8\% \\
 		\hline
-        \textbf{Global} & 41.3\% & 62.3\% & 43.5\% & 54.6\% & &\\
+        \textbf{Global} & 41.3\% & 62.3\% & 43.5\% & 54.6\% & 41.9\% & 57.0\% \\
     	\hline
 	\end{tabular}
 	\caption{Résultats complets sur CDNET de notre détection de nouveauté}
@@ -708,41 +757,41 @@ park & 60.7\% & 46.4\% & 52.6\% & 56.4\% & &\\
         \hline
         \textbf{Categories}/vidéos & Précision & Rappel & F-mesure & F-mesure & F-mesure & F-mesure\\
 		\hline
-        \textbf{Turbulence} & 8.7\% & 69.6\% & 12.4\% & 35.1\% & &\\
+        \textbf{Turbulence} & 8.7\% & 69.6\% & 12.4\% & 35.1\% & 14.9\% & 36.9\% \\
 		\hline
-turbulence0 & 1.5\% & 82.7\% & 3.0\% & 28.0\% & &\\
-turbulence1 & 6.0\% & 68.2\% & 11.0\% & 34.1\% & &\\
-turbulence2 & 1.3\% & 81.8\% & 2.6\% & 33.1\% & &\\
-turbulence3 & 25.9\% & 45.6\% & 33.1\% & 45.1\% & &\\
-
+		Turbulence0 & 1.5\% & 82.7\% & 3.0\% & 28.0\% & 2.9\% & 24.3\% \\
+		Turbulence1 & 6.0\% & 68.2\% & 11.0\% & 34.1\% & 13.5\% & 34.6\% \\
+		Turbulence2 & 1.3\% & 81.8\% & 2.6\% & 33.1\% & 0.9\% & 35.4\% \\
+		Turbulence3 & 25.9\% & 45.6\% & 33.1\% & 45.1\% & 42.3\% & 53.1\% \\
 		\hline
-		\textbf{Inter. motion [r]} & 68.0\% & 46.7\% & 52.0\% & 69.0\% & &\\
+		\textbf{Inter. motion [r]} & 68.0\% & 46.7\% & 52.0\% & 69.0\% & 57.7\% & 68.5\% \\
 		\hline
-sofa & 61.1\% & 49.0\% & 54.4\% & 67.7\% & &\\
-streetLight & 64.6\% & 68.4\% & 66.4\% & 85.1\% & &\\
-tramstop & 78.4\% & 22.7\% & 35.3\% & 54.3\% & &\\
+		Sofa & 61.1\% & 49.0\% & 54.4\% & 67.7\% & 58.4\% & 72.2\% \\
+		StreetLight & 64.6\% & 68.4\% & 66.4\% & 85.1\% & 77.4\% & 83.3\% \\
+		Tramstop & 78.4\% & 22.7\% & 35.3\% & 54.3\% & 37.1\% & 49.9\% \\
 		\hline
-        \textbf{Low framerate [r]} & 70.5\% & 66.4\% & 68.0\% & 74.3\% & &\\
+        \textbf{Low framerate [r]} & 70.5\% & 66.4\% & 68.0\% & 74.3\% & 62.7\% & 75.4\% \\
 		\hline
-tramCrossroad & 61.4\% & 72.9\% & 66.6\% & 68.7\% & &\\
-tunnelExit & 77.3\% & 63.7\% & 69.9\% & 75.4\% & &\\
-turnpike & 73.0\% & 62.7\% & 67.4\% & 78.7\% & &\\
-
+		TramCrossroad & 61.4\% & 72.9\% & 66.6\% & 68.7\% & 67.5\% & 69.3\% \\
+		TunnelExit & 77.3\% & 63.7\% & 69.9\% & 75.4\% & 48.1\% & 74.5\% \\
+		Turnpike & 73.0\% & 62.7\% & 67.4\% & 78.7\% & 72.5\% & 82.4\% \\
         \hline
-        \textbf{Global} & 41.3\% & 62.3\% & 43.5\% & 54.6\% & &\\
+        \textbf{Global} & 41.3\% & 62.3\% & 43.5\% & 54.6\% & 41.9\% & 57.0\% \\
     	\hline
 	\end{tabular}
 	\caption{Résultats complets sur CDNET de notre détection de nouveauté - Suite}
 	\label{tab:res:complet2}
 	\end{tableth}
 
-	Les résultats complets sont présentés dans les tableaux \ref{tab:res:complet1} et \ref{tab:res:complet2}. Les versions \textit{Global} indiquent que l'on a choisi les valeurs de taille de carte et d'imagettes qui étaient optimale sur l'ensemble de CDNET, c'est à dire $20\times20$ pour les tailles de carte et d'imagette pour la SOM et $?\times?$ pour les GNG. Les version \textit{Max} sont celles où on a pris la valeur optimale pour chaque vidéo.
+	Les résultats complets sont présentés dans les tableaux \ref{tab:res:complet1} et \ref{tab:res:complet2}. Les versions \textit{Global} indiquent que l'on a choisi les valeurs de seuil, de taille de carte et d'imagettes qui étaient optimale sur l'ensemble de CDNET, c'est à dire $25\times25$ pour les tailles de carte et $20\times20$ d'imagettes et un seuil à $7$ pour la SOM. Des imagettes de $15\times15$ pixels, $20\times20$ neurones et un seuil de $5$ pour les GNG. Les version \textit{Max} sont celles où on a pris la valeur optimale pour chaque vidéo.
 
-	La première chose que l'on peut remarquer, c'est que pour toutes les catégories, le rappel est toujours meilleur que la précision. Cependant pour 12 vidéos sur 39 (45?), la précision est meilleure. Notre modèle semble donc montrer une préférence pour la sensibilité plutôt que la précision, bien que ce ne soit pas une règle absolue et que cela dépende des séquences évaluées. 
+	La première chose que l'on peut remarquer, c'est que pour 8 catégories sur 10, le rappel est toujours meilleur que la précision. Pour seulement 13 vidéos sur 45, la précision est meilleure. Notre modèle semble donc montrer une préférence pour la sensibilité plutôt que la précision, bien que ce ne soit pas une règle absolue et que cela dépende des séquences évaluées. Comme par exemple avec \textit{Tramstop} qui a une précision trois fois supérieure à son rappel.
 
-	On peut également remarquer que notre modèle a beaucoup de mal dans les catégories avec un fond dynamique comme \textit{Dynamic background} et \textit{Turbulence} avec des précision ne dépassant pas les 10\%.
+	On peut également remarquer que notre modèle a beaucoup de mal dans les catégories avec un fond dynamique, c'est à dire avec des feuillages bruissants au vent ou des reflets dans l'eau, comme \textit{Dynamic background} et \textit{Turbulence} avec des précisions ne dépassant pas les 10\%. Mais des légers mouvements de caméras ne posent pas trop de problèmes dans \textit{Camera jitters}. Les autres catégories sont aux alentours de la moyenne globale de la SOM.
 
-	[Ajouter remarques sur Max et GNG une fois que les valeurs seront là]
+	La version Max de la SOM présente des choses intéressantes. Elle gagne 10\% de performance supplémentaire au global. Cela montre que des gains importants peuvent être faits en ajustant automatiquement le nombre de neurones, la taille des imagettes et le seuil par vidéo. Les gains les plus importants se trouvent dans les catégories dynamiques, avec \textit{Dynamic background} où la F-mesure a été doublée et \textit{Turbulence} où elle a été triplée. On suppose que le seuil est le facteur le plus influent dans ces cas là, car il peut permettre de supprimer une grande partie du bruit et ainsi d'améliorer la précision pour ces vidéos là.
+
+	Les GNG ont des performances similaires à la SOM, et réussissent et échouent dans les mêmes catégories. Au global, ils sont légèrement moins bon que les SOM avec 41,9\% de F-mesure contre 43,5\%. La version Max cependant arrive à 57\%, soit au dessus de la version SOM Max à 54,6\%. Cela provient peut-être de la plus forte variabilité observée dans les résultats des GNG, que l'on a par conséquent favorisé en choisissant le maximum pour chaque vidéo. 
 
 	\subsubsection{Comparaison avec l'état de l'art}
 
@@ -762,6 +811,7 @@ turnpike & 73.0\% & 62.7\% & 67.4\% & 78.7\% & &\\
 		PBAS & 70.9\% & 50.8\% & 55.1\% \\
 		SOBS & 66.7\% & 60.1\% & 56.4\% \\
 		\hline
+		GNG Global & 39.6\% & 66.1\% & 41.9\% \\
 		SOM Global & 41.3\% & 62.3\% & 43.5\% \\
 		\hline
 	\end{tabular}
@@ -769,7 +819,7 @@ turnpike & 73.0\% & 62.7\% & 67.4\% & 78.7\% & &\\
 	\label{tab:res:compare}
 	\end{tableth}
 
-	Notre méthode est avant dernière en précision, 5\textsuperscript{ième} sur 9 en rappel et avant dernière en F-mesure, bien que plus proche des 6 et 7\textsuperscript{ièmes} que du dernier. Les chiffres indiqués ne sont pas non plus directement comparables, car nos valeurs ont été calculées sur une partie seulement de CDNET et pas toutes les vidéos, mais l'ordre de grandeur devrait être environ le même. En comparaison des autres modèles, la précision est le plus gros facteur limitant de notre approche. Il faut aussi remarquer que les modèles utilisés dans cette review sont tous "classiques", et le meilleur algorithme actuel BSUV-Net 2 de \cite{tezcan2021bsuv}, est un réseau de neurones qui obtient 83.9\% en F-mesure sur CDNET, en utilisant de la \textit{data augmentation}.
+	Notre méthode est avant dernière en précision, 2\textsuperscript{ème} ex-æquo en rappel et 6\textsuperscript{ème} sur 9 en F-mesure. Les chiffres indiqués ne sont cependant pas directement comparables, car nos valeurs ont été calculées sur une partie seulement de CDNET et pas toutes les vidéos, mais l'ordre de grandeur devrait environ être le même. En comparaison des autres modèles, la précision est le plus gros facteur limitant de notre approche. Il faut aussi remarquer que les modèles utilisés dans cette review sont tous "classiques", et le meilleur algorithme actuel BSUV-Net 2 de \cite{tezcan2021bsuv}, est un réseau de neurones qui obtient 83.9\% en F-mesure sur CDNET, en utilisant de la \textit{data augmentation}.
 
 	\subsection{Visualisation des résultats}
 	
@@ -777,63 +827,108 @@ turnpike & 73.0\% & 62.7\% & 67.4\% & 78.7\% & &\\
 
 	\begin{figureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/in001646}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/in001647}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/bin001646}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/bin001647}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/gt001646}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/highway/gt001647}
 		\end{subfigureth}
 
 		\begin{subfigureth}{.32\textwidth}
 			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/in001840} \caption{Entrée}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/thr001840} \caption{SOM-Global}
+			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/bin001840} \caption{SOM-Global}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
 			\includegraphics[width=\linewidth]{resultats/visu/baseline/backdoor/gt001840} \caption{Vérité terrain}
 		\end{subfigureth}
 
-		\caption[]{}\label{fig:res:visu-baseline}
+		\caption[Visualisation résultats normaux]{Visualisations de résultats normaux de notre modèle. On peut y voir le découpage en bloc dû à l'utilisation d'imagettes et l'absence de bruit autour des nouveautés à détecter, mais avec quelques erreurs tout de même.}\label{fig:res:visu-baseline}
 	\end{figureth}
 
 	La figure \ref{fig:res:visu-dynamic} nous présente des cas de fond dynamiques où notre modèle a eu particulièrement du mal, notamment avec une précision très faible. On peut observer que le mouvement présent dans le fond est confondu avec de la nouveauté. Le mouvement étant permanent, cela cause un nombre très important de faux positifs, ce qui réduit significativement la précision.  
 
 	\begin{figureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/in000912}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/in000911}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/bin000912}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/bin000911}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/gt000912}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/canoe/gt000911}
 		\end{subfigureth}
 
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/in001900} \caption{Entrée}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fountain1/in001149}
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/thr001900} \caption{SOM-Global}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fountain1/bin001149} 
 		\end{subfigureth}
 		\begin{subfigureth}{.32\textwidth}
-			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/gt001900} \caption{Vérité terrain}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fountain1/gt001149} 
 		\end{subfigureth}
 
-		\caption[]{}\label{fig:res:visu-dynamic}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/in001504} \caption{Entrée}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/bin001504} \caption{SOM-Global}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/dynamic/fall/gt001504} \caption{Vérité terrain}
+		\end{subfigureth}
+		\caption[Visualisation résultats dynamiques]{Résultats sur des séquences avec un fond dynamique. Les changements trop importants du fond sont constamment considérés en nouveauté et ainsi réduisent drastiquement la précision.}\label{fig:res:visu-dynamic}
+	\end{figureth}
+
+	La figure \ref{fig:res:visu-normalisation} présente un des défauts de normaliser la carte de saillance, comme expliqué dans la section \ref{seq:combinaison}.
+
+	\begin{figureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/normalisation/corridor/in002386}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/normalisation/corridor/bin002386}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/normalisation/corridor/gt002386}
+		\end{subfigureth}
+
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/normalisation/corridor/in002202} \caption{Entrée}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/normalisation/corridor/bin002202} \caption{SOM-Global}
+		\end{subfigureth}
+		\begin{subfigureth}{.32\textwidth}
+			\includegraphics[width=\linewidth]{resultats/visu/normalisation/corridor/gt002202} \caption{Vérité terrain}
+		\end{subfigureth}
+
+		\caption[Visualisation des effets de la normalisation]{Exemple d'un cas où le fait de normaliser la carte de saillance pose problème. Dans la première ligne, l'objet est correctement détecté avec les reflets absents de la vérité terrain, et avec très peu de bruit. La seconde ligne sans objet à détecter fait fortement ressortir le bruit à la place.}\label{fig:res:visu-normalisation}
 	\end{figureth}
 
 	\subsection{Interprétations}
 
-	Les éléments que nous avons présentés montrent que la détection de nouveauté en utilisant la quantification vectorielle et la topologie d'une SOM fonctionne. Quantitativement parlant la précision de notre détection de nouveauté est loin derrière l'état de l'art, que ce soit des modèles classiques programmés ou des réseaux de neurones apprenants. Il faut cependant remarquer que la comparaison "pixel perfect" entre la vérité terrain et l'image de détection est particulièrement désavantageuse pour notre modèle, du fait d'une recherche de nouveauté au niveau des imagettes plutôt que du pixel. Si l'on ne compare que de façon binaire si un objet à été détecté ou non, nos résultats seraient possiblement plus comparables avec les autres approches.
+	Les éléments que nous avons présentés montrent que la détection de nouveauté en utilisant la quantification vectorielle et la topologie d'une SOM fonctionne. Quantitativement parlant la précision de notre détection de nouveauté est loin derrière l'état de l'art, que ce soit des modèles classiques programmés ou des réseaux de neurones apprenants. Il faut cependant remarquer que la comparaison "pixel perfect" entre la vérité terrain et l'image de détection est particulièrement désavantageuse pour notre modèle, du fait d'une recherche de nouveauté au niveau des imagettes plutôt que du pixel. Si l'on ne compare que de façon binaire si un objet à été détecté ou non, nos résultats seraient possiblement plus proches avec les autres méthodes.
 	
 	Notre modèle étant particulièrement mauvais pour les fonds dynamiques, l'hypothèse que nous avons faite dans la section \ref{sec:images} était donc fausse. Cette hypothèse supposait que la SOM serait capable de généraliser un environnement présent dans l'image de fond, et que tout mouvement dans cet environnement ne serait pas saillant du fait qu'il ait été appris et généralisé par la SOM. En pratique, un mouvement dans une zone de fond entraîne des changements très importants sur tous les pixels d'une imagette, ce qui se traduit par une grande différence au niveau du calcul de la distance avec les neurones, même si visuellement les deux imagettes sont similaires. Par conséquent, les différences seront élevées lorsqu'un fond dynamique est présent, contrairement à ce que nous pensions.
 
 	La piste que nous considérons la plus prometteuse pour résoudre ce problème serait de modifier le calcul de distances dans la SOM pour mieux refléter les différences dans les images. Une mesure comme la Structual Similarity (SSIM) \cite{wang2004image}, qui est un calcul de différences mieux adapté pour les images, même si elle ne suit pas les propriétés d'une distance. Une autre option plus neuronale serait d'essayer d'apprendre les types des différences qui peuvent se produire au cours du temps, comme les remous de l'eau par exemple, et ainsi ajouter une notion temporelle à notre modèle, qui n'en possède pas encore.
 
-	\section{Conclusion}
-		
+	Nous avons aussi montré avec les GNG que notre approche est facilement généralisable à d'autres modèles de quantification vectorielle avec topologie. Des variantes de SOM ou de GNG pourraient ainsi être essayés pour cette tâche pour potentiellement amener à de meilleurs résultats que la SOM classique sur cette application.
+
+	%\newpage
+	% \section{Conclusion}
+
+	% Nous avons vu dans ce chapitre une méthode pour apprendre l'environnement d'une image avec une SOM et comment utiliser cette connaissance pour effectuer une tâche de détection de nouveauté.
+
+	% Les performances sont en dessous de l'état de l'art, mais notre approche à pu montrer une certaine agilité des cartes auto-organisatrices à s'adapter à la tâche qu'on lui a fait faire, sans avoir à lui adjoindre d'autres mécanismes de détections de nouveauté complémentaires. Notre modèle n'a fait que manipuler les informations déjà présentes dans la carte pour effectuer la détection de nouveauté. Nous n'avons pas ajouté de pré-processing, ni de post-processing pour améliorer le résultat, il vient uniquement de la SOM.
+
+	% Il faut aussi remarquer que l'information est présente à de multiples niveaux dans les SOM. Non seulement dans la quantification vectorielle, mais aussi dans la topologie (et peut-être d'autres encore). L'idée que la topologie, c'est à dire l'organisation des neurones contienne de l'information nous rapproche des théories de l'émergence que nous avons présenté dans le contexte.
+
+	%\newpage		
 \bibliographystyle{francaissc}
 \bibliography{Chapitre2/Biblio}
