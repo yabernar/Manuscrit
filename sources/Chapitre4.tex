@@ -33,59 +33,93 @@
 
 	We present here our new algorithm for searching the Best Matching Unit (BMU) in the SOM. It is traditionally determined by means of an exhaustive search by comparing all the distances between the input vector and the neurons weights. This method, while able to always find the correct minimum of the map, is computationally inefficient. The dimensionality reduction property of the SOM means that close neurons in the SOM topology represent close vectors in the input space. Therefore when an input vector is presented to the SOM, a pseudo-continuous gradient appears in the SOM when considering the distances between the neuron weights and the input vector whose minimum is located at the BMU. Using some kind of discretized gradient descent approach, we expect that this distance will progressively reduce until the Best Matching Unit is reached, with the minimal distance in the map. 
 
-	\section{Observations topologiques}
 	\newpage
 
 	\section{Algorithme séquentiel}
 
-	Pour bien comprendre le fonctionnement de notre algorithme Fast-BMU, nous allons le présenter partie par partie. Nous commencerons par l'idée générale de la descente du gradient de la SOM. Puis nous aborderons les cas spéciaux en expliquant pourquoi ils existent, les conséquences possibles et comment Fast-BMU les résoud.  
+	Pour bien comprendre le fonctionnement de notre algorithme Fast-BMU, nous allons le présenter partie par partie. Nous commencerons par l'idée générale de la descente du gradient de la SOM. Puis nous aborderons les cas spéciaux en expliquant pourquoi ils existent, les conséquences possibles et comment Fast-BMU les résoud.
 
-	\begin{algorithm}[tb]
+	\begin{algorithm}
 	\caption{FastBMU}
 	\label{fast:alg:bmu}
-	\textbf{Entrée}: \\
-	{\tt vector} : vecteur d'entrée\\
-	{\tt w, h}: largeur et hauteur de la SOM\\
-	\textbf{Variables}: \\
-	{\tt dist\_memory}: historique des distances déjà évaluées\\
-	{\tt positions}: positions de départ des particules\\
-	\textbf{Sortie}: \\
-	{\tt bmu} : index de la Best Matching Unit
-	\begin{algorithmic}[1] %[1] enables line numbers
-	\STATE {\tt dist\_memory} $\xleftarrow{}$ None
-	\STATE {\tt positions} $\xleftarrow{}$ [(0,0), (w-1, 0), (0, h-1), (w-1, h-1)]
-	\STATE {\tt bmu} $\xleftarrow{}$ None
+	\DontPrintSemicolon
+	\Entree{\;
+	{\tt vecteur} : vecteur d'entrée \;
+	{\tt l, h}: largeur et hauteur de la SOM}
+	\Donnees{\;
+	{\tt positions}: positions de départ des particules\;
+	{\tt memoire\_dist}: historique des distances déjà évaluées\;
+	{\tt resultats}: dictionnaire vide}
+	\Sortie{\;
+	{\tt bmu} : index de la Best Matching Unit\;\;}
 
-	\STATE
-	\IF {$eval(pos)$ is True}
-	\STATE \textbf{return} $pos$
-	\ENDIF
-	\STATE $eval[pos] \xleftarrow{}$ True
-	\STATE Let $new\_pos$ take the index of the closest not evaluated neighbour to the input vector (ignoring neighbours $p$ such that $eval(p)=$True)
-	\IF {$values[new\_pos] \leq values[pos]$}
-	\STATE \textbf{return} Particle($new\_pos$)
-	\ENDIF
-	\STATE \textbf{return} The index of the smallest value between $pos$ and the returned indexes by execution of Particle() on all direct neighbours of $pos$.
-	\end{algorithmic}
+	\Deb{
+		{\tt positions} $\leftarrow [(0,0), (l-1, 0), (0, h-1), (l-1, h-1)]$\;
+		\Pour{{\tt pos} dans {\tt positions}}{
+			{\tt bmu\_particule} = Particule({\tt vector}, {\tt pos})\;
+			{\tt resultats[bmu\_particule]} $\leftarrow$ {\tt memoire\_dist[bmu\_particule]}\;
+		}
+		{\tt bmu} = minimum de {\tt resultats} par valeurs\;
+		\Retour{{\tt bmu}}
+	}
 	\end{algorithm}
 
-	\begin{algorithm}[tb]
-	\caption{Particle}
-	\label{fast:alg:particle}
-	\textbf{Input}: $pos$ : current position\\
-	\textbf{Parameters}: $values$: global table of distances, $eval$: global history of evaluations \\
-	\textbf{Output}: $bmu$ : best matching unit's index
-	\begin{algorithmic}[1] %[1] enables line numbers
-	\IF {$eval(pos)$ is True}
-	\STATE \textbf{return} $pos$
-	\ENDIF
-	\STATE $eval[pos] \xleftarrow{}$ True
-	\STATE Let $new\_pos$ take the index of the closest not evaluated neighbour to the input vector (ignoring neighbours $p$ such that $eval(p)=$True)
-	\IF {$values[new\_pos] \leq values[pos]$}
-	\STATE \textbf{return} Particle($new\_pos$)
-	\ENDIF
-	\STATE \textbf{return} The index of the smallest value between $pos$ and the returned indexes by execution of Particle() on all direct neighbours of $pos$.
-	\end{algorithmic}
+	\begin{algorithm}
+	\caption{Particule}
+	\label{fast:alg:particule}
+	\DontPrintSemicolon
+	\Entree{\;
+	{\tt vecteur} : vecteur d'entrée \;
+	{\tt pos}: position de la particule}
+	\Donnees{\;
+	{\tt memoire\_dist}: historique des distances déjà évaluées\;}
+	\Sortie{\;
+	{\tt bmu} : index de la Best Matching Unit potentielle\;\;}
+
+	\Deb{
+		\tcp{On commence par regarder les voisins directs pour trouver si l'un}
+		\tcp{d'entre eux est plus proche du vecteur d'entrée.}
+		{\tt bmu\_voisin} $\leftarrow$ RechercheVoisin({\tt vecteur}, {\tt pos}, 1)\;
+		\Si{{\tt memoire\_dist[bmu\_voisin]} $<$ {\tt memoire\_dist[\tt pos]}}{
+			\Retour{Particule({\tt vecteur}, {\tt bmu\_voisin})}
+		}
+		\tcp{Si il n'y en a pas, alors on se trouve dans un minimum local.}
+		\tcp{On effectue alors une nouvelle recherche dans le voisinage de 2.}
+		{\tt bmu\_voisin} $\leftarrow$ RechercheVoisin({\tt vecteur}, {\tt pos}, 2)\;
+		\Si{{\tt memoire\_dist[bmu\_voisin]} $<$ {\tt memoire\_dist[\tt pos]}}{
+			\Retour{Particule({\tt vecteur}, {\tt bmu\_voisin})}
+		}
+		\tcp{Si on ne trouve toujours rien, alors on peut considérer que l'on a atteint}
+		\tcp{la fin de la descente de gradient.}
+		\Retour{{\tt pos}}
+	}
+
+	\end{algorithm}
+
+	\begin{algorithm}
+	\caption{RechercheVoisin}
+	\DontPrintSemicolon
+	\Entree{\;
+	{\tt vecteur} : vecteur d'entrée \;
+	{\tt pos}: position de la particule\;
+	{\tt x}: distance topologique}
+	\Donnees{\;
+	{\tt resultats}: dictionnaire vide\;
+	{\tt prototypes}: valeurs des vecteurs prototypes de la SOM\;
+	{\tt memoire\_dist}: historique des distances déjà évaluées\;}
+	\Sortie{\;
+	{\tt bmu} : index de la Best Matching Unit potentielle\;\;}
+
+	\Deb{
+		\Pour{{\tt voisin} dans le voisinage à distance topologique x de {\tt pos}}{
+			\Si{{\tt memoire\_dist[voisin]} est vide}{
+				{\tt memoire\_dist[voisin]} $\leftarrow$ distance({\tt prototypes[voisin]}, {\tt vecteur})\;
+				{\tt resultats[\tt voisin]} $\leftarrow$ {\tt memoire\_dist[voisin]}\;
+			}
+		}
+		{\tt bmu\_voisin} $\leftarrow$ minimum de {\tt resultats} par valeurs\;
+		\Retour{{\tt bmu\_voisin}}
+	}
 	\end{algorithm}
 
 	La partie 
@@ -145,26 +179,23 @@
 
 	\subsection{Protocole expérimental}
 
-	To evaluate the robustness of our algorithm with various kinds of data, we have selected 6 datasets aimed at being representative of the kind of data SOMs are usually trained on. For the 2D case, we have generated data with different properties (uniform distribution and a highly non-convex shape), for 3D data we use a uniformly distributed cube shape and the pixel color values of an image. For the high dimensional case, we consider an image compression application \cite{amerijckx2003image} with 10 by 10 sub-images as training vectors (100 pixels with 3 colors each, resulting in 300 dimensions), and the Free Spoken Digits Dataset \cite{zohar_jackson_2018_1342401} which uses soundwaves that we have reduced to 1000 dimensions.
+	Pour évaluer la robustesse de notre algorithme avec différents types de données, nous avons sélectionné 6 jeux de données représentatifs du type de données sur lesquelles les SOM sont habituellement entraînés. Pour le cas 2D, nous avons généré des données avec différentes propriétés (une distribution uniforme et une forme hautement non convexe), pour les données 3D nous utilisons une forme cubique uniformément distribuée et les valeurs de couleur des pixels d'une image. Pour les hautes dimensions, nous considérons l'apprentissage par imagettes d'une image déjà présenté, avec des sous-images de 10 par 10 comme vecteurs d'entraînement (100 pixels avec 3 couleurs chacun, ce qui donne 300 dimensions), ainsi que le Free Spoken Digits Dataset \cite{zohar_jackson_2018_1342401} qui utilise des ondes sonores que nous avons réduites à 1000 dimensions. Nous emploierons des SOM à 2 dimensions avec des topologies en grille et hexagonales, car ce sont les plus utilisées.
 
-	Our algorithm is mostly designed for a 2 dimensional SOM, although adaptations to higher dimensions can be easily defined by just adapting the neighbourhood and the number of initial particles, even leading to possibly greater gains in computational cost. We tested it with a grid and a hexagonal shaped 2D topology, which are the most commonly used in SOM applications. 
-%Other topologies could work, but it is necessary to keep a strong continuous dimensionality reduction property through the topology (close neighbours should have close weights).
-
-	In order to evaluate the differences between all tested models, we used three metrics. The first one is the standard \textit{Mean Squared Quantization Error} (MSQE) which estimates the Vector Quantization quality of the tested algorithm. The \textit{Mean Squared Distance to Neurons} (MSDtN) which computes the average squared codeword distance between neurons and all of their direct neighbours. The lower this value is, the more closely related neighbouring neurons are, and the better the dimensional reduction property is. Numerous metrics exist in the SOM literature to estimate the topographical mapping of the SOM, but MSDtN has the advantage of being easy to compute, without parameters and only dependent on the neurons weights. For all metrics, lower is better. 
+	Afin d'évaluer les différences entre tous les modèles testés, nous avons utilisé deux métriques. La première est la \textit{Mean Squared Quantization Error} (MSQE) que nous avons déjà utilisée dans le chapitre 2. MSQE mesure la qualité de quantification vectorielle de l'algorithme testé. La seconde métrique est la \textit{Mean Squared Distance to Neurons} (MSDtN) qui calcule la distance moyenne au carré entre les prototypes des neurones et ceux de leurs voisins directs. Plus cette valeur est faible, plus les neurones voisins sont proches dans l'espace d'entrée et plus la propriété de réduction dimensionnelle est bonne. De nombreuses métriques existent dans la littérature sur les SOM pour la qualité de la réduction dimensionnelle d'une SOM, mais MSDtN a l'avantage d'être facile à calculer, sans paramètres et de ne dépendre que des poids des neurones. Pour toutes les métriques, une valeur plus faible est meilleure. 
 
 	\begin{equation}
-    	\text{MSQE} = \frac{1}{V} \sum_{i=1}^{V} ||v_i - w_{\text{bmu}(i)}||^2
+		\text{MSQE} = \frac{1}{dn} \sum_{i=0}^{n-1} (v_i - u_i)^2
 	\end{equation}
 
 	\begin{equation}
-    	\text{MSDtN} = \frac{1}{N} \sum_{i=1}^{N} \sum_{j=1}^{N} 
+    	\text{MSDtN} = \frac{1}{dN} \sum_{i=1}^{N} \sum_{j=1}^{N} 
     	\begin{cases}
-        	||w_i - w_j||^2,  & \text{if dist}(i, j) = 1\\
-        	0,              & \text{otherwise}
+        	(w_i - w_j)^2,  & \text{Si dist}(i, j) = 1\\
+        	0,              & \text{Sinon}
     	\end{cases}
 	\end{equation}
 
-	With $V$ the number of vectors in the dataset, $v_i$ the weights of the $i^{th}$ vector of the dataset, and bmu($i$) is the index of the neuron which is the best matching unit for the $i^{th}$ vector of the dataset. Similarly $N$ is the number of neurons and $w_i$ the weights of the $i^{th}$ neuron, while dist($i, j$) is the number of links in the shortest path between neurons $i$ and $j$ in the neural map.
+	Avec $n$ étant le nombre de vecteurs dans le jeu de données, $d$ leur dimensionalité, $v_i$ les poids du $i^{ème}$ vecteur d'entrée, et bmu($i$) l'indice du neurone qui est la \textit{best matching unit} de $v_i$. De même, $N$ est le nombre de neurones de la SOM et $w_i$ les poids du $i^{ème}$ neurone, tandis que dist($i, j$) est le nombre de connexions dans le chemin le plus court entre les neurones $i$ et $j$ dans la carte neuronale.
 
 	\subsection{Résultats}
 	\subsubsection{Performances}
@@ -177,7 +208,7 @@
 
 	\begin{tableth}
 	\label{tab:recap:param}
-	\caption[Résultats de FastBMU sur différentes données]{Results with a 32x32 neurons SOM, averaged over 50 executions. The Algorithm column specifies with which algorithm and topology the SOM was trained, FastG and FastH stand respectively for Fast Grid and Fast Hexagonal. MSQE\_S is the MSQE calculated with the standard (exhaustive) BMU algorithm whereas MSQE\_F uses the Fast-BMU version. Differences of MSQE\_S between different algorithms reflect the quality of the training phase. The mismatch is the proportion of BMU that are differently selected by the two algorithms.}
+	\caption[Résultats de FastBMU sur différentes données]{Résultats avec une SOM de $32\times32$ neurones, avec 50 executions par ligne. La colonne \textit{Algorithme} précise avec quel algorithme et quelle topologie la SOM a été entraînée. MSQE\_S est le MSQE calculé après apprentissage avec l'algorithme BMU standard (exhaustif) tandis que MSQE\_F utilise la version Fast-BMU. Nous combinons les deux apprentissages avec les deux reconstructions possibles (Standard et Fast). Les différences de MSQE\_S entre les différents algorithmes reflètent ainsi la qualité de la phase d'apprentissage. Le \textit{Mismatch} est la proportion de BMU qui sont sélectionnés différemment par les deux algorithmes.}
 	\begin{tabular}{|c|l|r|r|r|r|}
 	\hline
 	Données & Algorithme & MSDtN & MSQE\_S & MSQE\_F & Mismatch\\
@@ -202,15 +233,15 @@
         	& Hexagonal   & \nbr{1.33e-4} & \nbr{8.29e-5} & \nbr{8.30e-5} & \bf{0.4\%}\\
        		& Fast-Hex & \nbr{1.35e-4} & \bst{8.26e-5} & \bst{8.29e-5} & 0.7\%\\
 	\hline
-	Sons    & Grille  & \nbr{2.02e-4} & \nbr{1.42e-2} & \nbr{1.49e-2} & 31.3\%\\
-    (2D)   	& Fast-Grille & \bst{1.93e-4} & \nbr{1.44e-2} & \nbr{1.51e-2} & 32.2\%\\
-        	& Hexagonal   & \nbr{2.29e-4} & \bst{1.41e-2} & \bst{1.45e-2} & 19.8\%\\
-        	& Fast-Hex & \nbr{2.25e-4} & \nbr{1.42e-2} & \bst{1.45e-2} & \bf{13.3\%}\\
-	\hline
 	Image  	& Grille  & \bst{1.64e-4} & \nbr{1.80e-3} & \nbr{1.83e-3} & 4.2\%\\
-    (2D)    & Fast-Grille & \nbr{1.65e-4} & \nbr{1.82e-3} & \nbr{1.85e-3} & 4.4\%\\
+    (300D)    & Fast-Grille & \nbr{1.65e-4} & \nbr{1.82e-3} & \nbr{1.85e-3} & 4.4\%\\
         	& Hexagonal   & \nbr{1.97e-4} & \bst{1.75e-3} & \nbr{1.77e-3} & \bf{1.2\%}\\
         	& Fast-Hex & \nbr{1.99e-4} & \bst{1.75e-3} & \bst{1.76e-3} & \bf{1.2\%}\\
+	\hline
+	Sons    & Grille  & \nbr{2.02e-4} & \nbr{1.42e-2} & \nbr{1.49e-2} & 31.3\%\\
+    (1000D)   	& Fast-Grille & \bst{1.93e-4} & \nbr{1.44e-2} & \nbr{1.51e-2} & 32.2\%\\
+        	& Hexagonal   & \nbr{2.29e-4} & \bst{1.41e-2} & \bst{1.45e-2} & 19.8\%\\
+        	& Fast-Hex & \nbr{2.25e-4} & \nbr{1.42e-2} & \bst{1.45e-2} & \bf{13.3\%}\\
 	\hline
 	\end{tabular}	
 	\end{tableth}
@@ -227,7 +258,7 @@
     	\centering
     	\includegraphics[width=1\textwidth]{performance_diff.pdf}
 	%    \includesvg[inkscapelatex=false, width=0.8\textwidth]{performance_diff.pdf}
-    	\caption{Evaluation of performance gains with the number of neurons. All results were calculated on square maps. The blue line is the standard SOM, in green is the analytical value and in red the measured value. Additionally, the purple dots are the percentage of correct BMU in an execution on the Image dataset.}
+    	\caption[Évaluation des gains de performance en fonction du nombre de neurones]{Évaluation des gains de performance en fonction du nombre de neurones. Le gain en performance est exprimé en pourcentage de neurones qui ont dû être évalués pendant la recherche de BMU. Tous les résultats ont été calculés sur des cartes carrées. La ligne bleue représente la SOM standard, en vert la valeur analytique calculée et en rouge la valeur mesurée. En outre, les points violets représentent le pourcentage de BMU correctes dans une exécution sur le jeu de données Image.}
     	\label{fig:performance_diff}
 	\end{figureth}
 

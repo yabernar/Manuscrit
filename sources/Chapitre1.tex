@@ -112,6 +112,9 @@
 
 \newpage
 \section{Réseaux neuronaux}
+
+Nous présenterons dans cette partie l'histoire et le fonctionnement des modèles neuronaux que nous avons utilisés. C'est à dire les cartes auto-organisatrices \ref{sec:sota:som} et \ref{sec:sota:som_fc}, les gaz neuronaux en expansion \ref{sec:sota:gng} et les champs neuronaux dynamiques \ref{sec:sota:dnf}.
+
 \subsection{Cartes auto organisatrices}\label{sec:sota:som}
 
 	Les cartes auto-organisatrices regroupent un ensemble de modèles proposé initialement par Teuvo Kohonen \cite{kohonen-som82}. Ces modèles sont caractérisés par leur capacité à projeter des données de façon ordonnée sur un espace d'une dimension plus faible (typiquement une ou deux dimensions). Cette réduction dimensionnelle donne ainsi une "carte" représentative des données qu'on lui a fournies, car les propriétés de voisinage sont conservées. Une des premières utilisations de ces cartes fut la représentation des phonèmes du finnois comme présenté dans la figure \ref{fig:img:phonemes}.
@@ -128,7 +131,7 @@
 
 	Il y a eu de nombreuses évolutions pendant près de 40 ans d'existence des SOM. En 2002, une bibliographie recensait 5384 articles scientifiques utilisant les SOM \cite{oja2003bibliography}. Ils étaient estimés à plus de 10000 en 2011 \cite{bilbiography-finuni}. Les domaines d'applications sont très variés, allant du traitement du signal de l'analyse d'image et de la parole, jusqu'à la médecine, l'économie, la finance, l'urbanisme et d'autres encore. Pour chacun de ces domaines il y a plusieurs types d'utilisations de la SOM. Elle peut par exemple être utilisée en tant que méthode de visualisation capable de rendre humainement interprétable des données à très grande dimension en les projetant sur des dimensions plus petites. Mais aussi pour faire des traitements sur des données, par exemple pour faire de la classification non supervisée de caractères, de chiffres ou de phonèmes, ou de la détection d'anomalies entre autres. \cite{cottrell2018self} présente une revue récente des différentes approches et applications des SOM. 
 
-\subsection{Principes de fonctionnement}
+\subsection{Principes de fonctionnement}\label{sec:sota:som_fc}
 \subsubsection{Préparation des données}
 
 	Nous présentons dans cette section le fonctionnement de l'algorithme de la SOM que nous avons utilisé. Notre version est tout à fait classique et correspond à ce qui est communément utilisé dans la littérature.\\
@@ -177,7 +180,7 @@
 
 	Cette reconstruction est par exemple utilisée pour de la compression de données \cite{ettaouil2012improved}, car à la place de mémoriser un ensemble de vecteurs, il n'y a besoin que de mémoriser les vecteurs prototypes de la SOM et l'indice de chaque neurone le plus proche de chaque vecteur d'entrée de l'ensemble. Cette compression est avec perte, du fait que les vecteurs prototypes des neurones ne sont en général pas exactement les mêmes que les vecteurs présentés, même lorsque ceux-ci faisaient partie de la base d'apprentissage.
 
-	\subsection{Gaz Neuronaux en Expansion}
+	\subsection{Gaz Neuronaux en Expansion}\label{sec:sota:gng}
 
 	Bien que nos travaux se soient focalisés sur les cartes auto-organisatrices, notre approche se veut généraliste et transposable à d'autres modèles de quantification vectorielle avec topologie. Nous avons souhaité valider expérimentalement cette transposition en utilisant les Gaz neuronaux en expansion. C'est un autre modèle similaire aux SOM mais avec une approche tout à fait différente sur la topologie, qui devient dynamique et induite par les données d'apprentissage à la place de fixe et prédéterminée comme dans une SOM. 
 
@@ -232,36 +235,51 @@
 
 	\subsection{DNF}\label{sec:sota:dnf}
 
-	\footnotetext{Images provenant de https://github.com/AdrienGuille/GrowingNeuralGas, licence MIT}	
+	\footnotetext{Images provenant de https://github.com/AdrienGuille/GrowingNeuralGas, licence MIT}
 
-	Following the seminal work of \cite{Fix:dnf:2011}, we choose to couple our autonomous novelty detection tool to a robust bio-inspired tracking technique based on Dynamic Neural Fields (DNF). DNF are populations of partial differential equations first mathematically analyzed by \cite{amari:dnf:1977} in a continuous framework. We use a discrete DNF built from populations of excitatory and inhibitory neurons that interact continuously, with a on-center off-surround approach modeled as a synaptic kernel computed as a difference of gaussians applied to the distance between neurons in the neural map. These DNF have been successfully applied to sequential visual exploration of an environment \cite{Fix:dnf:2011} or in \cite{rougier:attention:2005}, with great robustness properties that can even improve with some adaptation like the use of simple spiking neurons \cite{vazquez:dnf:2011}. 
-	Continuous Neural Fields Theory (CNFT) has lead to the development of two dimensional Dynamic Neural Fields (DNF) \cite{Taylor2D}. Neural fields are models that represent the evolution of a population of neurons. In our case, we use a two dimensional DNF.
+	Les champs neuronaux dynamiques (DNF), introduits par \cite{amari1977dynamics} représentent mathématiquement l'évolution d'une population de neurones. Une dynamique << On center, Off surround >> a été ajoutée par \cite{ellias1975pattern}, qui ont employé des neurones inhibiteurs et excitateurs dans la forme typique de "chapeau mexicain" d'activations (un centre excitateur, un intermédiaire inhibiteur et des bords avec peu d'effet).
+	
+	Les DNF ont été l'objets de nombreux travaux, notamment dans la vision avec \cite{fix2011dynamic} qui met en œuvre une recherche séquentielle dans un environnement (attention \textit{overt}). Mais aussi pour du suivi de cibles comme par exemple dans \cite{martel2016neuromorphic}.
+
+	Selon leur paramétrage, les DNF peuvent prendre de nombreux rôles. Ils peuvent faire de la sélection, de la réduction de bruit, de la mémoire grâce à leur adaptabilité et leur mécanisme de \textit{soft winner-takes-all}. C'est pourquoi ils sont étudiés en tant que modèle de base pour en faire émerger des mécanismes cognitifs complexes \cite{sandamirskaya2014dynamic}.
 
 	\subsubsection{Fonctionnement}
 
-	Comme pour les SOM, les Champs neuronaux dynamiques (DNF) peuvent être déclinés en plusieurs dimensions. Nous n'utiliserons que des DNF d'une ou deux dimensions dans cette thèse. Les neurones d'un DNF sont connectés de façon rétinotopique aux entrées, par conséquent, la taille et le nombre de neurones est définie par la taille de la carte d'entrée. Chaque neurone est également connecté à tous les autres neurones. Enfin, tous les neurones possèdent un potentiel, qui est représenté par un nombre réel. Ce potentiel est noté $u(x,t)$, $x$ étant la position du neurone dans le champ et $t$ un instant de la simulation. La valeur du potentiel est définie par l'équation différentielle suivante :
+	Comme pour les SOM, les DNF peuvent être déclinés en plusieurs dimensions. Nous n'utiliserons que des DNF d'une ou deux dimensions dans cette thèse. Les neurones d'un DNF sont connectés de façon rétinotopique aux entrées, par conséquent, la taille et le nombre de neurones est définie par la taille de la carte d'entrée. Chaque neurone est également connecté à tous les autres neurones. Enfin, tous les neurones possèdent un potentiel, qui est représenté par un nombre réel. Ce potentiel est noté $u(x,t)$, $x$ étant la position du neurone dans le champ et $t$ un instant de la simulation. La valeur du potentiel est définie par l'équation différentielle suivante :
+
+	\begin{equation}\label{eq:dnf}
+		\tau \frac{\partial u(x, t)}{\partial t} = -u(x,t) + h + \int f(u(x',t))\omega(x-x')\delta x' + S(x,t)g - gi
+	\end{equation}
+
+	\begin{equation}\label{eq:diff_gauss}
+		\omega(d) = c_{\it exc} \exp \left[ - \frac{d^2}{2 \sigma_{\it exc}^2}\right] - c_{\it inh} \exp \left[ - \frac{d^2}{2 \sigma_{\it inh}^2}\right] 
+	\end{equation}
 
 	\begin{equation}
-		\tau \frac{\partial u(x, t)}{\partial t} = -u(x,t)+\int u(x',t)\omega(||x-x'||)\delta y + \text{Input}(x,t)
-	\end{equation}\label{eq:dnf}
+		f(x) = \frac{1}{1+e^{-x}}
+	\end{equation}
 
-	Avec :
 	\begin{itemize}
     	\item $\tau$ est une constante qui règle la vitesse d'adaptation du DNF.
     	\item $-u(x,t)$ est le terme de fuite. Son rôle est d'inhiber des neurones activés lorsqu'il n'y a plus d'activations par l'entrée ou par d'autres neurones.
-		\item $\omega(||x-x'||)$ est l'intéraction latérale. Il représente l'effet d'autres neurones sur le potentiel de ce neurone. Nous utilisons une différence de gaussiennes. La gaussienne la plus pointue est excitatrice et la gaussienne plus allongée est inhibitrice. Cela a pour effet que les neurones proches sont excitateurs et les neurones lointains inhibiteurs. On appelle également les neurones ayant un impact excitateur ou inhibiteurs des neurones afférents.
-		\item $Input(x,t)$ est la valeur au temps $t$ de l'entrée à la position $x$. 
+		\item $h$ est la valeur de repos du neurone, qui doit être négative.
+		\item f(u(x,t)) est une fonction logistique. Elle représente l'activation du neurone $x$ au temps $t$. Il s'agit souvent de cette valeur que l'on utilise en sortie du DNF.
+		\item $\omega(x-x')$ est l'intéraction latérale. Il représente l'effet d'autres neurones sur le potentiel de ce neurone. Nous utilisons une différence de gaussiennes. La gaussienne la plus pointue est excitatrice et la gaussienne plus allongée est inhibitrice. Cela a pour effet que les neurones proches sont excitateurs et les neurones lointains inhibiteurs. On appelle également les neurones ayant un impact excitateur ou inhibiteurs des neurones afférents. La formule est détaillée dans l'équation \ref{eq:diff_gauss}, avec les quatre paramètres associés.
+		\item $S(x,t)$ est la valeur au temps $t$ de l'entrée à la position $x$.
+		\item $g$ est le gain, et est une constante réelle utilisée pour faire varier l'effet de l'entrée.
+		\item $gi$ est l'inhibition globale. C'est une constante divisée par le nombre de neurones présent dans la carte. 
+
 	\end{itemize}
 
 	Par souci de simplicité et de calculabilité, nous avons implémenté une version spatialement et temporellement discrétisée de l'équation \ref{eq:dnf}. Elle est obtenue en manipulant les potentiels d'un ensemble discret de neurones (carte neuronale au lieu de champ neuronal) et en utilisant une simple méthode d'Euler pour estimer l'état de $u(x,t+\Delta t)$ en connaissant $u(x,t)$ :
 
 	\begin{equation}
-		u(x, t+\Delta t) = u(x, t) +\frac{\Delta t\left(-u(x, t)+\sum u(x', t)\omega(||x-x'||) + \text{Input}(x, t+\Delta t)\right)}{\tau}
+		u(x, t+\Delta t) = u(x, t) +\frac{\Delta t}{\tau}\left(-u(x, t)+ h + \sum f(u(x', t))\omega(x-x') + S(x, t+\Delta t)g - gi\right)
 	\end{equation}
 
-	$\Delta t$ est le pas de temps entre deux estimations, il peut être le même pour tous les neurones (synchrone) ou différent à chaque fois (asynchrone). Il convient de noter que dans la formule DNF originale, il existe d'autres paramètres tels que le potentiel de repos, mais comme nous ne les utilisons pas ici, nous ne les avons pas mentionnés.
+	$\Delta t$ est le pas de temps entre deux estimations, il peut être le même pour tous les neurones (synchrone) ou différent à chaque fois (asynchrone).
 
-	Il est souvent difficile de comprendre le comportement d'un DNF à partir de sa formule. Nous l'avons configuré avec des paramètres optimisés afin d'obtenir un comportement de type "winner-takes-all" où les caractéristiques les plus proéminentes et spatialement cohérentes dans la carte d'entrée créent une bulle d'activation locale dans la carte neuronale et suppriment la capacité d'autres bulles de ce type à apparaître ailleurs dans la carte.
+	Il est souvent ardu de comprendre le comportement d'un DNF à partir de sa formule uniquement, ainsi nous préciserons les paramètres et le comportement que nous avons choisi pour chaque DNF que nous avons utilisé aux endroits appropriés. Les changements dans les paramètres étant ce qui produit les différents comportements des DNF, ils sont par conséquent difficiles à paramétrer.
 
 \bibliographystyle{francaissc}
 \bibliography{Chapitre1/Biblio}
