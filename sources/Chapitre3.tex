@@ -17,9 +17,7 @@
 	\section{Introduction}
 	\section{Détection de mouvements}
 
-	Le rôle de la première couche pour traiter les événements de la caméra sera de transformer les informations ponctuelles dans le temps et l'espace qu'envoie la caméra en zones de mouvements continues, facilitant le travail des couches supérieures. Pour ce faire, nous utiliserons des DNF, particulièrement appropriés par leur capacité d'intégration de l'information, et de leur robustesse au bruit très présent dans ce type de caméra. Habituellement, on utilise des DNF à deux dimensions pour gérer des images. Cependant cela représente 307 200 neurones avec notre caméra 640$\times$480, tous connectés dépendants les uns des autres, et devant être recalculés à chaque itération. Nous souhaitons que la première couche soit simple et rapide, alors nous avons choisi d'utiliser deux DNF à 1 dimension, un pour chaque axe.
-
-
+	Le rôle de la première couche pour traiter les événements de la caméra sera de transformer les informations ponctuelles dans le temps et l'espace qu'envoie la caméra en zones de mouvements continues, facilitant le travail des couches supérieures. Pour ce faire, nous utiliserons des DNF, particulièrement appropriés par leur capacité d'intégration de l'information, et de leur robustesse au bruit très présent dans ce type de caméra. Habituellement, on utilise des DNF à deux dimensions pour gérer des images. Cependant cela représente 307 200 neurones avec notre caméra 640$\times$480, tous connectés dépendants les uns des autres, et devant être recalculés à chaque itération. Nous souhaitons que la première couche soit simple et rapide, alors nous avons choisi d'utiliser deux DNF à une dimension, un pour chaque axe.
 
 	\begin{figureth}
 		\begin{subfigureth}{\textwidth}
@@ -67,8 +65,41 @@
 
 	\newpage
 
-	\section{Mécanisme attentionnel}
 	\section{Combinaison avec la détection de nouveauté}
+
+	La détection de mouvement présentée dans la section précédente a des points communs avec la détection de nouveauté de la SOM. En effet, chaque cible détectée par la détection de nouveauté sera nécessairement également détectée par la détection de mouvement. Car la nouveauté ne peut apparaître qu'avec du mouvement. L'inverse n'est cependant pas vrai (il peut y avoir du mouvement sans nouveauté), et ce principe ne compte que lors de l'apparition de nouveauté. Si de la nouveauté s'arrête de se déplacer, elle n'apparaîtra plus comme mouvement, mais sera toujours de la nouveauté.
+
+	La détection de mouvement étant beaucoup plus rapide que la détection de nouveauté, nous pouvons utiliser celle-ci comme déclencheur de la détection de nouveauté dans une zone particulière de l'image. Ainsi, la détection de nouveauté ne sera appelée que lorsque du mouvement apparaîtra dans l'image, et limitera le calcul de la SOM à une zone d'intérêt dans l'image. Un exemple est montré sur la figure \ref{fig:opti:spike}.
+
+	\begin{figureth}
+		\begin{subfigureth}{\textwidth}
+			\includegraphics[width=\linewidth]{tracking/spike_opti}
+		\end{subfigureth}
+		\caption[Combinaison SOM et DNF par zone d'intérêt]{Un exemple de combinaison possible entre une caméra évènementielle et la détection de nouveauté avec une SOM. Les DNF travaillant sur les entrées évènementielles permettent la création d'une zone d'intérêt (image en bas à gauche). Cette zone d'intérêt sert à concentrer les efforts de la SOM là où de la nouveauté a des chances d'apparaître.}\label{fig:opti:spike}
+	\end{figureth}
+
+	Le masque est obtenu en appliquant un seuil sur la combinaison des deux DNF par le produit dyadique. La valeur du seuil a été choisie pour englober la zone d'intérêt le plus possible sans dépasser au delà. Un seuil trop bas a pour conséquence qu'une activation d'un seul DNF suffira à dépasser le seuil, et ainsi la zone d'intérêt formera une "croix" avec pour centre la vraie zone d'intérêt. Un bon seuil est donc juste assez haut pour éviter la croix, mais le plus bas possible pour ne rien perdre dans la zone d'intérêt.
+
+	\begin{tableth}
+	\caption[Gains grâce à la combinaison SOM-DNF]{Estimation de gains potentiels avec cette combinaison de SOM-DNF. Il n'y a pas beaucoup de nouveauté qui est perdue (83\% de la sortie de la SOM conservée au minimum), et les pertes sont en majorité du bruit. Les gains quand à eux peuvent aller de 2 fois plus rapide à 10 fois, en fonction de la taille du signal, et du bruit ambiant.}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		Séquence & Taux de positifs conservés & Taux d'imagettes évaluées\\
+		\hline
+		Plane & 98,9\% & 10\% \\
+		Walk & 83,6\% & 43\% \\
+		Highway & ? & ? \\
+		\hline
+	\end{tabular}
+	\label{tab:nbr:optidnf}
+	\end{tableth}
+
+	Le tableau \ref{tab:nbr:optidnf} présente quelques métriques pour estimer les gains potentiels de cette méthode sur des séquences que nous avons enregistrées. Les gains dépendent fortement de la taille des objets en mouvements (plus ils sont gros, plus la SOM sera sollicitée), et du bruit ambiant. En effet, des mouvements sans nouveauté dans le fond d'une image solliciterons la SOM pour les classer en nouveauté ou non continuellement. Mais si il n'y a pas de signal et que les DNF ne s'activent pas à cause du bruit, la SOM peut être complètement ignorée et la caméra non évènementielle éteinte. Cela permet donc un mode d'observation passif consommant peu d'énergie (uniquement avec caméra évènementielle et DNF), qui peut automatiquement devenir actif en fonction de la scène observée.
+
+	\newpage
+
+	\section{Mécanisme attentionnel}
+	\section{Opérations de haut niveau}
 	\section{Conclusion}
 		
 \bibliographystyle{francaissc}

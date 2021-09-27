@@ -181,7 +181,7 @@
 
 	Pour évaluer la robustesse de notre algorithme avec différents types de données, nous avons sélectionné 6 jeux de données représentatifs du type de données sur lesquelles les SOM sont habituellement entraînés. Pour le cas 2D, nous avons généré des données avec différentes propriétés (une distribution uniforme et une forme hautement non convexe), pour les données 3D nous utilisons une forme cubique uniformément distribuée et les valeurs de couleur des pixels d'une image. Pour les hautes dimensions, nous considérons l'apprentissage par imagettes d'une image déjà présenté, avec des sous-images de 10 par 10 comme vecteurs d'entraînement (100 pixels avec 3 couleurs chacun, ce qui donne 300 dimensions), ainsi que le Free Spoken Digits Dataset \cite{zohar_jackson_2018_1342401} qui utilise des ondes sonores que nous avons réduites à 1000 dimensions. Nous emploierons des SOM à 2 dimensions avec des topologies en grille et hexagonales, car ce sont les plus utilisées.
 
-	Pour ces tests, nous avons fait débuter $\alpha$ à 0.6 pour finir à 0.05. $\sigma$ commence à 0.5 et termine à 0.001. La SOM est de taille $322\times32$ (1024 neurones) et apprend pendant 10 époques.
+	Pour ces tests, nous avons fait débuter $\alpha$ à 0.6 pour finir à 0.05. $\sigma$ commence à 0.5 et termine à 0.001. La SOM est de taille $32\times32$ (1024 neurones) et apprend pendant 10 époques.
 
 	Afin d'évaluer les différences entre tous les modèles testés, nous avons utilisé deux métriques. La première est la \textit{Mean Squared Quantization Error} (MSQE) que nous avons déjà utilisée dans le chapitre 2. MSQE mesure la qualité de quantification vectorielle de l'algorithme testé. La seconde métrique est la \textit{Mean Squared Distance to Neurons} (MSDtN) qui calcule la distance moyenne au carré entre les prototypes des neurones et ceux de leurs voisins directs. Plus cette valeur est faible, plus les neurones voisins sont proches dans l'espace d'entrée et plus la propriété de réduction dimensionnelle est bonne. De nombreuses métriques existent dans la littérature sur les SOM pour la qualité de la réduction dimensionnelle d'une SOM, mais MSDtN a l'avantage d'être facile à calculer, sans paramètres et de ne dépendre que des poids des neurones. Pour toutes les métriques, une valeur plus faible est meilleure. 
 
@@ -209,7 +209,6 @@
 	La colonne algorithme du tableau indique la combinaison de l'algorithme de recherche de BMU et de la topologie qui a été utilisée pour l'entraînement. La MSDtN (voir section \ref{seq:exp}) est calculée sur les poids des neurones entraînés. La MSQE\_S (Standard) est l'erreur de quantification dans la phase de reconstruction (après apprentissage) en utilisant la recherche de BMU standard. La comparaison des différentes valeurs de MSQE\_S pour des SOM ayant été apprises par une version standard et une version rapide de la recherche de BMU donne une indication de l'influence de l'algorithme Fast-BMU sur la qualité de l'apprentissage uniquement, car il sélectionne toujours la vraie BMU dans la phase de reconstruction. La métrique MSQE\_F (Fast) mesure l'erreur de quantification vectorielle avec la sélection de BMU effectuée par l'algorithme Fast-BMU. Si l'entraînement a été effectué sur la SOM standard, il donne une indication de l'influence de l'algorithme Fast-BMU sur la précision du reconstruction uniquement ; s'il a été entraîné sur une version Fast, il représente le résultat MSQE d'une SOM qui utilise uniquement l'algorithme Fast-BMU. La colonne mismatch donne la proportion de BMU qui sont sélectionnées différemment par les deux algorithmes.
 
 	\begin{tableth}
-	\label{tab:recap:param}
 	\caption[Résultats de FastBMU sur différentes données]{Résultats avec une SOM de $32\times32$ neurones, avec 50 executions par ligne. La colonne \textit{Algorithme} précise avec quel algorithme et quelle topologie la SOM a été entraînée. MSQE\_S est le MSQE calculé après apprentissage avec l'algorithme BMU standard (exhaustif) tandis que MSQE\_F utilise la version Fast-BMU. Nous combinons les deux apprentissages avec les deux reconstructions possibles (Standard et Fast). Les différences de MSQE\_S entre les différents algorithmes reflètent ainsi la qualité de la phase d'apprentissage. Le \textit{Mismatch} est la proportion de BMU qui sont sélectionnés différemment par les deux algorithmes.}
 	\begin{tabular}{|c|l|r|r|r|r|}
 	\hline
@@ -245,7 +244,8 @@
         	& Hexagonal   & \nbr{2.29e-4} & \bst{1.41e-2} & \bst{1.45e-2} & 19.8\%\\
         	& Fast-Hex & \nbr{2.25e-4} & \nbr{1.42e-2} & \bst{1.45e-2} & \bf{13.3\%}\\
 	\hline
-	\end{tabular}	
+	\label{tab:recap:param}
+	\end{tabular}
 	\end{tableth}
 
 	Nous observons d'abord que la distance entre les neurones après apprentissage (MSDtN) est plus faible avec la topologie en grille qu'avec la topologie hexagonale, mais cette différence pourrait être attribuée au nombre différent de voisins entre les deux topologies et ne devrait donc être utilisée que pour comparer les différences entre les algorithmes standard et Fast-BMU, et pas les topologies. Nous remarquons également que l'algorithme Fast ne présente pas d'écart significatif sur les jeux de données Square et Shape, et donc que MSQE\_S et MSQE\_F ont des résultats de reconstruction similaires sur ces jeux de données.
