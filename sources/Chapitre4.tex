@@ -40,33 +40,8 @@
 	Pour bien comprendre le fonctionnement de notre algorithme Fast-BMU, nous allons le présenter partie par partie. Nous commencerons par l'idée générale de la descente du gradient de la SOM. Puis nous aborderons les cas spéciaux en expliquant pourquoi ils existent, les conséquences possibles et comment Fast-BMU les résoud.
 
 	\begin{algorithm}
-	\caption{FastBMU}
-	\label{fast:alg:bmu}
-	\DontPrintSemicolon
-	\Entree{\;
-	{\tt vecteur} : vecteur d'entrée \;
-	{\tt l, h}: largeur et hauteur de la SOM}
-	\Donnees{\;
-	{\tt positions}: positions de départ des particules\;
-	{\tt memoire\_dist}: historique des distances déjà évaluées\;
-	{\tt resultats}: dictionnaire vide}
-	\Sortie{\;
-	{\tt bmu} : index de la Best Matching Unit\;\;}
-
-	\Deb{
-		{\tt positions} $\leftarrow [(0,0), (l-1, 0), (0, h-1), (l-1, h-1)]$\;
-		\Pour{{\tt pos} dans {\tt positions}}{
-			{\tt bmu\_particule} = Particule({\tt vector}, {\tt pos})\;
-			{\tt resultats[bmu\_particule]} $\leftarrow$ {\tt memoire\_dist[bmu\_particule]}\;
-		}
-		{\tt bmu} = minimum de {\tt resultats} par valeurs\;
-		\Retour{{\tt bmu}}
-	}
-	\end{algorithm}
-
-	\begin{algorithm}
 	\caption{Particule}
-	\label{fast:alg:particule}
+	\label{fast:alg:particle}
 	\DontPrintSemicolon
 	\Entree{\;
 	{\tt vecteur} : vecteur d'entrée \;
@@ -93,11 +68,11 @@
 		\tcp{la fin de la descente de gradient.}
 		\Retour{{\tt pos}}
 	}
-
 	\end{algorithm}
 
 	\begin{algorithm}
 	\caption{RechercheVoisin}
+	\label{fast:alg:voisin}
 	\DontPrintSemicolon
 	\Entree{\;
 	{\tt vecteur} : vecteur d'entrée \;
@@ -122,27 +97,46 @@
 	}
 	\end{algorithm}
 
-	La partie 
+	Le coeur de Fast-BMU est la descente de gradient discrétisée sur les neurones qui minimise la distance entre ceux-ci et le vecteur d'entrée. Le pseudo-code de cette descente de gradient, appelée \textit{Particule}, est présenté dans les algorithmes \ref{fast:alg:particle} et \ref{fast:alg:voisin}. Une \textit{Particule} commence à une position choisie arbitrairement dans la carte. Pour cet exemple, illustré dans la figure \ref{fig:first_particle}, considérons qu'elle débute aux coordonnées $(0,0)$ (coin supérieur gauche). Ce neurone a deux voisins, un à l'est (1,0) et un au sud (0,1). Nous évaluons les distances au vecteur d'entrée de ces trois neurones pour trouver la prochaine étape de la descente du gradient. Si l'un des neurones voisins donne la plus petite distance, alors la descente du gradient va dans la direction de ce neurone particulier, qui devient la prochaine position sélectionnée à partir de laquelle nous répétons ce processus. Si la plus petite distance est trouvée là où nous sommes actuellement positionnés, alors nous considérons que nous nous trouvons dans un minimum local. Dans notre exemple, la plus petite distance est mesurée pour le neurone situé à l'est en (1,0). Le processus de recherche se déplace donc d'un pas vers l'est. Ce neurone a trois voisins, un au sud (1,1), un à l'est (2,0) et un à l'ouest dont nous venons et que nous allons donc ignorer. Nous comparons à nouveau les trois distances et nous nous déplaçons vers la distance la plus faible (le Sud). Ce processus itère jusqu'à atteindre un minimum local à la position (6,5), où tous les neurones voisins ont une distance au vecteur d'entrée plus élevée que le neurone sélectionné.
 
-
-	Dans notre algorithme, nous utilisons cette réduction progressive des distances pour effectuer une descente de gradient discrétisée afin de trouver la meilleure unité de correspondance. Le pseudo-code est présenté dans l'Algorithme \ref{fast:alg:particle}, et illustré dans la figure \ref{fig:first_particle} (à gauche). L'algorithme commence à une position choisie arbitrairement dans la carte. Pour cet exemple, considérons qu'il commence aux coordonnées $(0,0)$ (coin supérieur gauche). Ce neurone a deux voisins, un à l'est (1,0) et un au sud (0,1). Nous évaluons les distances au vecteur d'entrée de ces trois neurones pour trouver la prochaine étape de la descente du gradient. Si la plus petite distance est trouvée là où nous sommes actuellement positionnés, alors nous considérons qu'il s'agit d'un minimum local. Au contraire, si l'un des neurones voisins donne la plus petite distance, alors la descente du gradient va dans la direction de ce neurone particulier, qui devient la prochaine position sélectionnée à partir de laquelle nous répétons ce processus jusqu'à ce que nous trouvions un minimum local. Dans notre exemple, la plus petite distance est mesurée pour le neurone oriental en (1,0). Le processus de recherche se déplace donc d'un pas vers l'est, et ce neurone a trois voisins, un au sud (1,1), un à l'est (2,0) et un à l'ouest dont nous venons (et que nous ignorons donc). Nous comparons à nouveau les trois distances et nous nous déplaçons vers la distance la plus faible (sud).
-
-	Ce processus itère jusqu'à atteindre un minimum local à la position (6,5), où tous les neurones voisins ont une distance au vecteur d'entrée plus élevée que le neurone sélectionné. Afin de s'assurer que le minimum local qui a été trouvé est le meilleur dans le voisinage local, nous effectuons ensuite une recherche de l'espace local en continuant la descente du gradient à partir de tous les neurones directement voisins qui sont encore inexplorés. Si cette recherche trouve un meilleur minimum local, alors ce minimum local est considéré comme le BMU. Cette partie de l'algorithme vise à contourner les problèmes qui peuvent découler de la topologie. Dans une topologie de grille par exemple, nous ne pouvons regarder que les axes orthogonaux. Mais parfois, le gradient est orienté vers une direction diagonale, et en étendant la recherche à partir d'un minimum local, nous sommes en mesure de suivre ce gradient vers un BMU potentiel.
-
-
-	In our algorithm we use this progressive reduction of distances to perform a discretized gradient descent to find the Best Matching Unit. The pseudo-code is shown in Algorithm \ref{alg:particle}, and illustrated in figure \ref{fig:first_particle} (left). The algorithm starts at an arbitrarily selected position in the map. For this example let us consider that it starts at coordinates $(0,0)$ (top left corner). This neuron has two neighbours, one to the east (1,0) and one to the south (0,1). We evaluate the distances to the input vector of these three neurons to find the next step in the gradient descent. If the smallest distance is found where we are currently positioned, then we consider this is a local minimum. On the contrary if one of the neighbouring neurons gives the smallest distance, then the gradient descent goes in the direction of this particular neuron, that becomes the next selected position from which we repeat this process until we find a local minimum. In our example the smallest distance is measured for the eastern neuron in (1,0). Thus the search process moves one step to the east, and this neuron has three neighbours, one to the south (1,1), one to the east (2,0) and one to the west that we come from (and thus we ignore it). We compare the three distances again, and move towards the lowest distance (south).
-
-	This process iterates until it reaches a local minimum at position (6,5), where all neighbouring neurons have a higher distance to the input vector than the selected neuron. In order to ensure that the local minimum that has been found is the best one in the local neighbourhood, we then perform a search of the local space by continuing the gradient descent from all directly neighbouring neurons that are still unexplored. If this search finds a better local minimum, then this local minimum is considered as the BMU. This part of the algorithm aims at circumventing problems that may arise from the topology. In a grid topology for instance, we can only look at orthogonal axes. But sometimes, the gradient is oriented towards a diagonal direction, and by extending the search from a local minimum, we are able to still follow this gradient towards a potential BMU.
+	Trouver un neurones sans meilleurs voisins ne garantit cependant pas que l'on a terminé la descente de gradient. On peut observer par exemple sur la figure \ref{fig:first_particle} que les neurones au sud et à l'ouest du premier minimum local ont un gradient qui pointent vers un autre neurone que le minimum local actuel. Cela s'explique par le fait que, surtout pour les topologies en grille, le gradient soit en diagonale, et que par conséquent qu'il faille deux étapes (sud puis ouest ou ouest puis sud) continuer la descente. Pour compenser ce problème, et afin de s'assurer que le minimum local qui a été trouvé est bien le meilleur dans le voisinage local, nous effectuons une recherche de minimum dans tous les voisins à voisinage topologique de 2. Si un nouveau minimum a été trouvé, nous continuons la descente de gradient à partir de celui-ci. Si il n'y en a pas, alors nous considérons que la descente de gradient est terminée, et que la position actuelle est le minimum trouvé. Car tous ses voisins sont moins bons, et que le gradient de tous ses voisins amènent à lui.
 
 	\begin{figure}[!t]
     	\centering
     	\includesvg[scale=1.2]{first_particle}\ \ \ \ \ \ \ 
     	\includesvg[scale=1.2]{all_particles}
-    	\caption{Left: Example of the execution of one particle. Each cell represents one neuron. The arrow in each cell points towards the best neighbour (where a lower distance can be found). A star represents a local minimum. The green colored cells are the neurons who have been explored during the search, and the blue cells are the neurons whose distance to the input has been computed but that have not been explored by the algorithm. After having found a local minimum, new particles are created (in red) and continue the gradient descent by exploring the local neighbourhood. The cell in Yellow is the BMU, and the global minimum of the map. Right: Execution of the four particles.}
+		\caption[Visualisation de l'algorithme de particule]{À Gauche : exemple d'exécution d'une particule. Chaque cellule représente un neurone. La flèche dans chaque cellule pointe vers le meilleur voisin (qui a une distance inférieure). Une étoile représente un minimum local. Les cellules vertes sont les neurones qui ont été explorés pendant la recherche, et les cellules bleues sont les neurones dont la distance au vecteur d'entrée a été calculée mais qui n'ont pas été sélectionnés par l'algorithme. Après avoir trouvé un minimum local, de nouvelles particules sont créées (en rouge) et continuent la descente du gradient en explorant le voisinage local. La cellule en jaune est la BMU, et le minimum global de la carte. À droite : exécution des quatre particules.}
     	\label{fig:first_particle}
 	\end{figure}
 
-	Another problem that can arise with the particle algorithm is edge effects. When mapping high dimensional data onto a 2D map, the map sometimes become twisted  no gradient between the top left neuron and the bottom right neuron. Imagine a net that is thrown onto a ball and nearly completely enveloping it: the shortest path between one corner of the net and the opposite corner of the net does not follow the mesh of the net. If in the learning phase, the particle ends up in the wrong corner of the SOM, it will find a terrible BMU and the following weight update will locally break the neighbourhood continuity, and create a negative feedback loop that will remove all dimensionality reduction properties from the SOM. Thankfully there is an easy way to avoid this, by simply starting 4 particles, one in each corner of the SOM, and selecting the smallest BMU found. This technique preserves the continuity of the SOM and makes the Fast-BMU algorithm more robust to local discontinuities in the gradient, especially at the beginning of the training process, when the map is not yet well unfolded. In the case where there is no clear gradient present in the SOM (typically when the SOM is randomly initialized before training), this algorithm will fail to find the correct BMU. However it is not a problem at the start of training as the neighborhood function will create a gradient by unfolding the SOM regardless of which neuron is initially selected. The result of a full Fast-BMU execution is shown in figure \ref{fig:first_particle} (right).
+	Un autre problème qui peut survenir avec une unique \textit{Particule} est dû aux bords. Lors du mappage de données à haute dimension sur une SOM 2D, la carte peut parfois devenir tordue sans gradient continu entre le neurone supérieur gauche et le neurone inférieur droit. Imaginez par exemple un filet que l'on jette sur une sphère et qui l'enveloppe presque complètement : le chemin le plus court entre un coin du filet et le coin opposé du filet ne suivra pas les mailles du filet. Si, au cours de la phase d'apprentissage, la particule se retrouve dans le mauvais coin de la SOM, elle trouvera une très mauvaise BMU et la mise à jour des vecteurs prototypes des neurones brisera localement la continuité du voisinage, et créera une boucle de rétroaction négative qui détruira toutes les propriétés de réduction dimensionnelles de la SOM. Il existe un moyen facile d'éviter cela, en démarrant 4 \textit{Particules}, une dans chaque coin de la SOM, et en sélectionnant la plus petite BMU trouvée parmi les 4. Cette technique préserve la continuité du SOM et rend l'algorithme Fast-BMU plus robuste aux discontinuités locales du gradient, notamment au début de l'apprentissage, lorsque la carte n'est pas encore bien déployée. Fast-BMU complet est défini dans l'algorithme \ref{fast:alg:bmu}, et le résultat d'une exécution complète est illustré dans la figure \ref{fig:first_particle} à droite.
+	
+	Il faut aussi remarquer que dans le cas où il n'y a pas de gradient clair dans la SOM (typiquement lorsque la SOM est initialisée de façon aléatoire avant l'apprentissage), Fast-BMU ne trouvera pas la BMU correcte. Toutefois, ce n'est pas un problème pour l'apprentissage, car la fonction de voisinage créera un gradient en dépliant la SOM, quel que soit le neurone initialement sélectionné, et une fois le gradient créé, Fast-BMU trouvera les bonnes BMU.
+
+	\begin{algorithm}
+	\caption{FastBMU}
+	\label{fast:alg:bmu}
+	\DontPrintSemicolon
+	\Entree{\;
+	{\tt vecteur} : vecteur d'entrée \;
+	{\tt l, h}: largeur et hauteur de la SOM}
+	\Donnees{\;
+	{\tt positions}: positions de départ des particules\;
+	{\tt memoire\_dist}: historique des distances déjà évaluées\;
+	{\tt resultats}: dictionnaire vide}
+	\Sortie{\;
+	{\tt bmu} : index de la Best Matching Unit\;\;}
+
+	\Deb{
+		{\tt positions} $\leftarrow [(0,0), (l-1, 0), (0, h-1), (l-1, h-1)]$\;
+		\Pour{{\tt pos} dans {\tt positions}}{
+			{\tt bmu\_particule} = Particule({\tt vector}, {\tt pos})\;
+			{\tt resultats[bmu\_particule]} $\leftarrow$ {\tt memoire\_dist[bmu\_particule]}\;
+		}
+		{\tt bmu} = minimum de {\tt resultats} par valeurs\;
+		\Retour{{\tt bmu}}
+	}
+	\end{algorithm}
 
 	\subsection{Analyse de la complexité}\label{seq:complex_analysis}
 
