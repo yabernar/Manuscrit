@@ -198,7 +198,7 @@
 
 	Dans cette section, nous examinerons les différences de qualité d'apprentissage et de reconstruction entre la version standard et notre version FastBMU pour le calcul de la BMU. Nous regarderons également les différences pratiques dans le nombre de calculs requis pour les deux versions et nous les comparerons avec l'analyse de complexité présentée précédemment.
 
-	Pour chaque combinaison de jeu de données et de modèle (choix de la topologie et de l'algorithme BMU), nous avons effectué 50 exécutions avec différentes graines aléatoires qui affectent les jeux de données générés, l'initialisation des poids des neurones (qui sont tous initialisés aléatoirement sans gradient préexistant) et l'ordre dans lequel les vecteurs d'apprentissage sont présentés. Les résultats sont présentés dans le tableau \ref{tab:recap:param}.
+	Pour chaque combinaison de jeu de données et de modèle (choix de la topologie et de l'algorithme BMU), nous avons effectué 50 exécutions avec différentes graines aléatoires qui affectent les jeux de données générés, l'initialisation des poids des neurones (qui sont tous initialisés aléatoirement sans gradient préexistant) et l'ordre dans lequel les vecteurs d'apprentissage sont présentés. Les résultats sont présentés dans le tableau \ref{tab:fast:res}.
 
 	La colonne algorithme du tableau indique la combinaison de l'algorithme de recherche de BMU et de la topologie qui a été utilisée pour l'entraînement. La MSDtN (voir section \ref{seq:exp}) est calculée sur les poids des neurones entraînés. La MSQE\_S (Standard) est l'erreur de quantification dans la phase de reconstruction (après apprentissage) en utilisant la recherche de BMU standard. La comparaison des différentes valeurs de MSQE\_S pour des SOM ayant été apprises par une version standard et une version rapide de la recherche de BMU donne une indication de l'influence de l'algorithme Fast-BMU sur la qualité de l'apprentissage uniquement, car il sélectionne toujours la vraie BMU dans la phase de reconstruction. La métrique MSQE\_F (Fast) mesure l'erreur de quantification vectorielle avec la sélection de BMU effectuée par l'algorithme Fast-BMU. Si l'entraînement a été effectué sur la SOM standard, il donne une indication de l'influence de l'algorithme Fast-BMU sur la précision du reconstruction uniquement ; s'il a été entraîné sur une version Fast, il représente le résultat MSQE d'une SOM qui utilise uniquement l'algorithme Fast-BMU. La colonne mismatch donne la proportion de BMU qui sont sélectionnées différemment par les deux algorithmes.
 
@@ -238,7 +238,7 @@
         	& Hexagonal   & \nbr{2.29e-4} & \bst{1.41e-2} & \bst{1.45e-2} & 19.8\%\\
         	& Fast-Hex & \nbr{2.25e-4} & \nbr{1.42e-2} & \bst{1.45e-2} & \bf{13.3\%}\\
 	\hline
-	\label{tab:recap:param}
+	\label{tab:fast:res}
 	\end{tabular}
 	\end{tableth}
 
@@ -260,10 +260,74 @@
 
 	Pour évaluer les gains de calcul induits par l'utilisation de l'algorithme Fast-BMU indépendamment des techniques d'implémentation, nous avons comparé le pourcentage de neurones qui doivent être évalués afin de trouver le BMU. Les résultats sont présentés dans la figure \ref{fig:performance_diff}. La SOM standard évalue par définition tous les neurones, le pourcentage est donc toujours de 100\%. La courbe de complexité de Fast-BMU représente la fonction définie dans la section \ref{seq:complex_analysis}. Pour obtenir la courbe mesurée par Fast, nous avons effectué des tests avec des SOM de taille $n\times n$, où $n$ est tout nombre pair compris entre 10 et 50 (21 tests au total). Chaque test comprenait tous les ensembles de données et toutes les topologies (soit 12 exécutions par test).
 
-	Notre algorithme est deux fois plus rapide avec des SOM de $(16\times16)$, quatre fois plus rapide avec 1000 neurones $32\times32$. La SOM $50\times50$ évalue environ 375 neurones par itération, ce qui est similaire aux 400 neurones qu'une SOM standard de $20\times20$ doit évaluer. Nous pouvons également observer que la courbe de complexité suit une forme similaire à la courbe mesurée, tout en surestimant le nombre requis de neurones évalués d'environ 75\%.
+	Notre algorithme est deux fois plus rapide avec des SOM de $16\times16$, quatre fois plus rapide avec 1000 neurones $32\times32$. La SOM $50\times50$ évalue environ 375 neurones par itération, ce qui est similaire aux 400 neurones qu'une SOM standard de $20\times20$ doit évaluer. Nous pouvons également observer que la courbe de complexité suit une forme similaire à la courbe mesurée, tout en surestimant le nombre requis de neurones évalués d'environ 75\%.
 
 	\newpage
 	\section{Algorithme parallèle}
+
+	Une implémentation matérielle sur FPGA de notre détection de nouveauté nécessiterait du parallélisme pour utiliser efficacement les ressources à disposition. Car implémenter une SOM complète sur FPGA pour n'avoir qu'une dizaine de neurones actifs en même temps serait sous optimal. FastBMU est cependant un algorithme fondamentalement séquentiel. Chaque étape de celui-ci dépend fortement de l'étape précédente pour suivre le gradient. Par conséquent en faire une version parallèle nécessiterait de changer fondamentalement son fonctionnement. Une idée plus simple pour réaliser ce parallélisme serait de le placer non pas au niveau de la recherche de BMU, mais au niveau des itérations. En effet, si il est possible de paralléliser les instructions d'une façon qui permette d'utiliser quasiment tous les neurones simultanément avec FastBMU sans compromettre la qualité des BMU trouvées, alors nous aurons un moyen d'être plus performant que les versions purement parallèles de SOM qui calculent les distances de tous les neurones en un seul cycle. Si nous atteignons un pourcentage d'utilisation par neurone proche de 100\%, en utilisant FastBMU qui fait beaucoup moins d'évaluations que la version standard, alors nous calculerons plus de BMU par cycle que la version standard parallèle.
+
+	\subsection{Adaptation pour le parallélisme}
+
+	Une itération par cycle
+
+	Pour comprendre  nous avons calculé le pourcentage  \ref{fig:fast:eval_percent}
+
+	\begin{figureth}
+    	\centering
+    	\includegraphics[width=1\textwidth]{utilisation.pdf}
+    	\caption[Pourcentage d'évaluations par neurones pour FastBMU]{Pourcentage d'évaluations par neurones pour FastBMU. On peut diviser ceux-ci en trois catégories. La première en rouge regroupe tous les coins qui sont évalués à chaque itération, puisque point de départ des particules. La seconde sont les bords en jaune qui sont évalués un peu plus de la moitié du temps. La dernière est le centre en vert, qui sont évalués moins d'un quart du temps.}
+    	\label{fig:fast:eval_percent}
+	\end{figureth}
+
+	dédoubler les neurones au bord
+
+	\subsection{Evaluation}
+
+	Nous avons ensuite évalué les performances de notre algorithme parallèle de la même manière que la version séquentielle, avec quelques données en moins. Les résultats sont présentés dans le tableau \ref{tab:fast:parallel}. Ils ne sont cependant pas directement comparables avec ceux montrés précédemment dans le tableau \ref{tab:fast:res}, car ils ont été obtenu avec une nouvelle expérience et avec des paramètres légèrement différents de la première. Les différences relatives entre les algorithmes sont néanmoins similaires entre les deux expériences.
+
+	\begin{tableth}
+		\caption[Résultats de Fast-BMU en parallèle]{Résultats avec une SOM de $32\times32$ neurones, avec 10 exécutions par ligne. La colonne \textit{Algorithme} précise avec quel algorithme et quelle topologie la SOM a été entraînée. MSQE\_S est le MSQE calculé après apprentissage avec l'algorithme BMU standard (exhaustif) tandis que MSQE\_F utilise la version Fast-BMU. Nous combinons les trois apprentissages (Standard, Fast et Parallel) avec les deux reconstructions possibles (Standard et Fast, sans Parallel puisqu'il est équivalent à Fast pour la reconstruction). Les différences de MSQE\_S entre les différents algorithmes reflètent ainsi la qualité de la phase d'apprentissage. Le \textit{Mismatch} est la proportion de BMU qui sont sélectionnés différemment par les deux algorithmes.}
+		\begin{tabular}{|c|l|r|r|r|r|}
+		\hline
+		Données & Algorithme & MSDtN & MSQE\_S & MSQE\_F & Mismatch\\
+		\hline
+		Carré 	& Grille & \bst{2.44e-4} & \nbr{2.28e-4} & \nbr{2.28e-4} & 0.0\%\\
+		(2D)  	& Grille Fast & \bst{2.44e-4} & \nbr{2.28e-4} & \nbr{2.28e-4} & 0.0\%\\
+				& Grille Parallel & \nbr{2.49e-4} & \bst{2.02e-4} & \bst{2.02e-4} & 0.0\%\\
+				& Hexagonal & \bst{2.80e-4} & \nbr{2.20e-4} & \nbr{2.20e-4} & 0.0\%\\
+				& Hexa Fast & \bst{2.80e-4} & \nbr{2.20e-4} & \nbr{2.20e-4} & 0.0\%\\
+				& Hexa Parallel & \nbr{2.84e-4} & \bst{2.02e-4} & \bst{2.02e-4} & 0.0\%\\
+		\hline
+		Couleurs& Grille & \bst{1.47e-4} & \nbr{8.49e-5} & \nbr{8.71e-5} & 5.3\%\\
+		(3D)	& Grille Fast & \nbr{1.53e-4} & \nbr{8.63e-5} & \nbr{8.78e-5} & 5.4\%\\
+				& Grille Parallel & \nbr{1.88e-4} & \bst{8.06e-5} & \bst{8.44e-5} & 7.6\%\\
+				& Hexagonal & \bst{1.62e-4} & \nbr{8.05e-5} & \nbr{8.10e-5} & 1.0\%\\
+				& Hexa Fast & \nbr{1.62e-4} & \nbr{7.96e-5} & \nbr{7.98e-5} & \bf{0.5\%}\\
+				& Hexa Parallel & \nbr{1.83e-4} & \bst{7.60e-5} & \bst{7.68e-5} & 1.5\%\\
+		\hline
+		Cube 	& Grille & \nbr{5.63e-4} & \nbr{2.22e-3} & \bst{2.68e-3} & 6.0\%\\
+		(3D)	& Grille Fast & \nbr{5.80e-4} & \bst{2.20e-3} & \nbr{3.12e-3} & 7.5\%\\
+				& Grille Parallel & \bst{5.59e-4} & \nbr{2.34e-3} & \nbr{3.77e-3} & 12.8\%\\
+				& Hexagonal & \bst{6.09e-4} & \bst{2.12e-3} & \bst{2.34e-3} & \bf{2.6\%}\\
+				& Hexa Fast & \nbr{6.31e-4} & \bst{2.12e-3} & \nbr{2.51e-3} & 5.5\%\\
+				& Hexa Parallel & \nbr{6.19e-4} & \nbr{2.18e-3} & \nbr{2.46e-3} & 3.2\%\\
+		\hline
+		Image 	& Grille & \bst{2.05e-4} & \bst{1.80e-3} & \nbr{1.84e-3} & 3.5\%\\
+		(300D)	& Grille Fast & \nbr{2.05e-4} & \nbr{1.81e-3} & \bst{1.83e-3} & 4.5\%\\
+				& Grille Parallel & \nbr{2.23e-4} & \nbr{1.82e-3} & \nbr{1.88e-3} & 4.7\%\\
+				& Hexagonal & \bst{2.34e-4} & \nbr{1.76e-3} & \nbr{1.78e-3} & 1.4\%\\
+				& Hexa Fast & \nbr{2.34e-4} & \nbr{1.75e-3} & \bst{1.77e-3} & \bf{1.2\%}\\
+				& Hexa Parallel & \nbr{2.49e-4} & \bst{1.75e-3} & \nbr{1.77e-3} & \bf{1.2\%}\\
+		\hline
+		\label{tab:fast:parallel}
+		\end{tabular}
+	\end{tableth}
+
+	Le premier point intéressant dans le tableau se trouve dans pour les données \textit{Carré}. En effet, tous les algorithmes arrivent à 0\% de \textit{mismatch}, mais on peut voir des différences entre les versions Standard et Fast et la version Parallel. Cette différence ne pouvant pas être expliquée par la sélection de BMU différentes, elle provient donc probablement de la simultanéité des recherches de BMU dans la version Parallel. Cette recherche en simultané ajoute du bruit dans l'apprentissage, ce qui a l'air d'améliorer légèrement les performances de la SOM en quantification vectorielle, et réduisant sa continuité topologique. La même chose semble se produire pour \textit{Couleurs}. 
+
+	\textit{Cube} quand à lui est encore plus mauvais avec Parallel. \textit{Image} a des résultats de MSQE très similaire entre les trois algorithmes. Parallel étant juste légèrement moins bon en continuité topologique. Il semblerait donc que sur les données où FastBMU séquentiel fonctionne, la version parallèle fonctionne tout aussi bien, et que sur des données où la version séquentielle a des problèmes, ils empirent avec la version parallèle. Pour la catégorie de données qui nous intéresse (\textit{Images}), FastBMU en parallèle serait donc une variante capable de réduire significativement le coût en calcul de la SOM lorsqu'implémentée matériellement pour notre détection de nouveauté par exemple.
+
 	\section{Conclusion}
 
 	We have presented a novel method to find the Best Matching Unit in Self-Organizing Maps by taking advantage of their ability to preserve their underlying topology within the codebook. Our algorithm is significantly faster to compute while performing barely worse than the standard approach in vector quantization. %The difference in vector quantization is not a significant problem, since it can be compensated by using slightly larger neural maps that are faster to compute with our method. 
