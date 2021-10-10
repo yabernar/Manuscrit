@@ -54,7 +54,7 @@
 
 	Une fois l'apprentissage terminé, on obtient deux sorties. La première est le modèle entraîné avec les différents poids des neurones codant une imagette représentante du cluster d'imagettes associé à ce neurone. La seconde est la liste, pour chaque imagette de l'image, de l'indice du neurone le plus proche de celle-ci, qui pourra être utilisé pour la reconstruction de l'image d'apprentissage. Le procédé est montré sur la figure \ref{fig:img:comp_ex}.
 
-	Pour reconstruire une image à partir de la liste des indices de BMU, il suffit de remplacer chaque indice par le vecteur prototype du neurone auquel il correspond. Ces vecteurs prototypes devront être réassemblés en imagettes (dans un tableau à 2 dimensions à la place d'un vecteur à une dimension), lesquels seront placés à la bonne position pour reformer l'image.
+	Pour reconstruire une image à partir de la liste des indices de BMU, il suffit de remplacer chaque indice par le vecteur prototype du neurone auquel il correspond. Ces vecteurs prototypes devront être réassemblés en imagettes (dans un tableau à 2 dimensions à la place d'un vecteur à une dimension), et seront placés à la bonne position pour reformer l'image.
 
 	Il est aussi possible de reconstruire une image qui n'a pas été apprise. Pour cela il faut créer la liste d'indices des BMU des imagettes de la nouvelle image, et de reconstruire ensuite l'image par le même procédé que montré précédemment. Il faut noter que l'image que l'on souhaite reconstituer doit être proche de l'image apprise, c'est à dire contenir des éléments similaires, pour obtenir un résultat correct.
 
@@ -77,7 +77,7 @@
 
 	Une approche possible serait de séparer l'image par composante. Une image RVB par exemple donnerait trois images en niveau de gris, une R, une V et une B. Deux options s'offrent ensuite à nous. Soit utiliser une seule SOM pour apprendre toutes les images ainsi extraites en espérant que les différentes formes présentes dans chaque composante soient assez similaires entre elles. Cela augmente aussi les données que la SOM doit apprendre, car on vient de multiplier la taille de notre base d'apprentissage par le nombre de canaux. Ces données doivent être aussi cohérentes dans l'espace d'entrée pour que la réduction dimensionnelle se fasse correctement. Soit utiliser une SOM par composante pour apprendre chaque canal séparément, et de regrouper ensuite les différents canaux reconstitués en une image couleur. 
 	
-	Cependant ces deux approches ont un défaut majeur pour la compression d'images (ainsi que la détection de nouveauté en conséquence), c'est la création d'aberrations chromatiques dans l'image reconstituée. En effet, les canaux étant appris séparément avant d'être recombinés, la reconstruction peut donner pour certains pixels des teintes de couleurs qui n'existaient pas dans l'image de base, qui peuvent être très saillants visuellement. Par exemple un pixel blanc dans l'image d'entrée (avec une forte composante R, V et B), lorsque reconstitué par la SOM peut être bien reconstitué dans deux composantes (V et B par exemple), et mal reconstitué dans la troisième (R) avec une valeur beaucoup plus faible que dans l'image de base, car on minimise la distance entre les canaux séparément. Par conséquent ce pixel aura une couleur turquoise dans l'image reconstituée à la place de blanc. Cette erreur minimise bien la distance avec l'image de base, et ce n'est que visuellement que les changements de teintes sont apparentes et dégradent proportionnellement plus la qualité de l'image que que l'erreur mesurée.
+	Cependant ces deux approches ont un défaut majeur pour la compression d'images (ainsi que la détection de nouveauté en conséquence), c'est la création d'aberrations chromatiques dans l'image reconstituée. En effet, les canaux étant appris séparément avant d'être recombinés, la reconstruction peut donner pour certains pixels des teintes de couleurs qui n'existaient pas dans l'image de base, qui peuvent être très saillants visuellement. Par exemple un pixel blanc dans l'image d'entrée (avec une forte composante R, V et B), lorsque reconstitué par la SOM peut être bien reconstitué dans deux composantes (V et B par exemple), et mal reconstitué dans la troisième (R) avec une valeur beaucoup plus faible que dans l'image de base, car on minimise la distance entre les canaux séparément. Par conséquent ce pixel aura une couleur turquoise dans l'image reconstituée à la place de blanc. Cette erreur minimise bien la distance avec l'image de base, et ce n'est que visuellement que les changements de teintes sont apparentes et dégradent proportionnellement plus la qualité de l'image que l'erreur mesurée.
 
 	Une meilleure approche consiste à inclure tous les canaux directement dans les imagettes. Chaque imagette devient donc une imagette en couleur, et sa taille augmente donc en conséquence. Une imagette de 10 par 10 pixels par exemple qui donnerait un vecteur prototype de taille 100, passe à 300 avec les trois couleurs. L'apprentissage et la reconstruction se déroulent de la même manière que dans la SOM classique. Il faut aussi noter que l'ordre n'a pas d'importance dans les vecteurs prototypes, on peut arranger les valeurs en RGBRGBRGB tout comme RRRGGGBBB sans que cela ne change le résultat, le calcul de distance euclidienne étant indépendant de l'ordre des coordonnées. La figure \ref{fig:img:rep} montre une comparaison de reconstructions obtenues entre couleurs fusionnées et couleurs séparées.
 
@@ -86,7 +86,7 @@
 			\includegraphics[width=\linewidth]{flower_low_20}\caption{Couleurs fusionnées}	
 		\end{subfigureth}
 		\begin{subfigureth}{0.48\textwidth}
-			\includegraphics[width=\linewidth]{flower_added_20}\caption{Couleurs séparées}	
+			\includegraphics[width=\linewidth]{flower_added_20}\caption{Couleurs séparées apprises par 3 SOM}	
 		\end{subfigureth}
 		\caption[Représentation d'une image]{Comparaison entre une image avec des couleurs fusionnées et la même image avec des couleurs séparées qui présente des artefacts visuels.\footnotemark}\label{fig:img:rep}
 	\end{figureth}
@@ -367,7 +367,7 @@
 		\begin{subfigureth}{0.24\textwidth}
 			\includegraphics[width=\linewidth]{CDNET/lowFramerate/in000235}\caption{Tunnel Exit}	
 		\end{subfigureth}
-		\caption[Catégorie Low Framerate - Reduced]{\textit{Low Framerate Reduced} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 secondes entre chaque image). Cela a pour but de pénaliser les approches à partir de flux optique, cependant notre approche n'est pas concernée. Trois vidéos sur les quatre ont été conservées. Seule une vidéo d'une marina a été retirée car la nouveauté (des bateaux) était trop similaire au fond, qui consiste en un grand nombre de bateaux similaires amarrés.}\label{fig:cdnet:fps}
+		\caption[Catégorie Low Framerate - Reduced]{\textit{Low Framerate Reduced} : Cette catégorie regroupe des vidéos avec beaucoup de temps entre les images (entre 1 seconde et 6 secondes entre chaque image). Cela a pour but de pénaliser les approches à partir de flux optique, cependant notre approche n'est pas concernée. Trois vidéos sur les quatre ont été conservées. Seule une vidéo d'une marina a été retirée car la nouveauté (des bateaux) était trop similaire au fond, qui consiste en un grand nombre de bateaux similaires amarrés. Notre approche considérant la nouveauté au sens de l'inattendu. Un objet qui apparaît similaire à des objets déjà présents dans le fond ne rentre pas dans cette interprétation.}\label{fig:cdnet:fps}
 	\end{figureth}
 
 	\begin{figureth}
@@ -421,7 +421,7 @@
 	
 	\subsubsection{Précision}
 
-	La précision mesure la proportion de pixels correctement labellisés en tant que nouveauté parmi tous les pixels que le modèle a étiqueté comme nouveauté. La précision est comprise entre 0 et 1 et s'exprime souvent en pourcentage.
+	La précision mesure la proportion de pixels correctement labellisés en tant que nouveauté parmi tous les pixels que le modèle a étiquetés comme nouveauté. La précision est comprise entre 0 et 1 et s'exprime souvent en pourcentage.
 	
 	\begin{equation}
 		\text{Précision} = \frac{\text{Vrais Positifs}}{\text{Vrais Positifs} + \text{Faux Positifs}}
@@ -449,11 +449,11 @@
 
 	\subsubsection{L'œil humain}
 
-	Il n'existe pas de mesure objective pour déterminer la qualité de l'apprentissage d'une quantification vectorielle ou de détection de nouveauté, il n'y a que des estimations et approximations. Pour la quantification vectorielle par exemple, le calcul de l'erreur semble naturel, mais il ne capture pas toutes les spécificités des modèles. Notamment lorsque l'on travaille avec des images, le problème déjà évoqué que certaines erreurs sont visuellement plus perceptibles que d'autres, alors qu'elles ont la même valeur numérique. Mais il y a aussi des propriétés de certains modèles de VQ qui ne peuvent être simplement quantifiés, comme par exemple la gestion des \textit{outliers}. Un algorithme peut par exemple préférer représenter le mieux possible la majorité de la base de données en laissant de côté les \textit{outliers}, ou au contraire de faire en sorte que toutes les données soient bien représentées, mais en sacrifiant une meilleure précision sur les données les plus nombreuses. 
+	Il n'existe pas de mesure objective pour déterminer la qualité de l'apprentissage d'une quantification vectorielle ou de détection de nouveauté, il n'y a que des estimations et approximations. Pour la quantification vectorielle par exemple, le calcul de l'erreur semble naturel, mais il ne capture pas toutes les spécificités des modèles. Notamment lorsque l'on travaille avec des images, le problème déjà évoqué est que certaines erreurs sont visuellement plus perceptibles que d'autres, alors qu'elles ont la même valeur numérique. Mais il y a aussi des propriétés de certains modèles de VQ qui ne peuvent être simplement quantifiées, comme par exemple la gestion des \textit{outliers}. Un algorithme peut par exemple préférer représenter le mieux possible la majorité de la base de données en laissant de côté les \textit{outliers}, ou au contraire faire en sorte que toutes les données soient bien représentées, mais en sacrifiant une meilleure précision sur les données les plus nombreuses. 
 	
 	Le même problème de subjectivité se présente pour la détection de nouveauté, par exemple dans sa différenciation avec la détection de changement déjà évoquée. Mais en plus, les mesures quantitatives que nous avons sélectionnées ne représentent pas forcément l'aspect qualitatif de la détection de nouveauté. Par exemple si on a un algorithme qui a pour résultat le contour des objets nouveaux dans une image, la tâche sera bien remplie, mais le score sur les métriques sera mauvais car il sera attendu de l'algorithme qu'il marque de façon positive tous les pixels de l'objet nouveau et non pas seulement le contour. Ce genre de problème peut parfois être résolu par l'utilisation de post processing, le remplissage à partir des contours ici par exemple. Mais ce n'est pas toujours le cas.
 
-	Il est donc nécessaire d'adjoindre à ces métriques objectives, une estimation subjective du comportement des modèles évalués. Pour les images, nous avons la chance d'être naturellement dotés de très bons capteurs et d'un réseau neuronal biologique performant très entraîné sur des données visuelles. Par conséquent certaines de nos interprétations s'appuierons sur le résultat visuel de nos modèles en complément des métriques.
+	Il est donc nécessaire d'adjoindre à ces métriques objectives, une estimation subjective du comportement des modèles évalués. Pour les images, nous avons la chance d'être naturellement dotés de très bons capteurs et d'un réseau neuronal biologique performant très entraîné sur des données visuelles. Par conséquent certaines de nos interprétations s'appuieront sur le résultat visuel de nos modèles en complément des métriques.
 
 	\subsection{Préparation des données}
 
@@ -493,7 +493,7 @@
 		Nous pouvons observer que les distributions suivent une loi normale. Il semblerait que la variabilité de la F-mesure est inférieure à celle de la MSQE.}\label{fig:params:random}
 	\end{figureth}
 
-	D'après la figure \ref{fig:params:random}, le comportement aléatoire de notre modèle peut-être assimilé à une loi normale. Cela nous permet, en utilisant la règle empirique, de donner un intervalle de confiance lorsque l'on estimera la moyenne pour nos mesures. Nous supposerons que les variances de la catégorie \textit{baseline} sur laquelle nous avons mesuré ces valeurs est du même ordre que sur toutes les vidéos du jeu de données CDNET. Nous supposerons aussi que toutes les distributions suivent une loi normale, comme celles de la \textit{baseline}.
+	D'après la figure \ref{fig:params:random}, le comportement aléatoire de notre modèle peut-être assimilé à une loi normale. Cela nous permet, en utilisant la règle empirique, de donner un intervalle de confiance lorsque l'on estimera la moyenne pour nos mesures. Nous supposerons que les variances de la \textit{baseline} sur laquelle nous avons mesuré ces valeurs est du même ordre que sur toutes les vidéos du jeu de données CDNET. Nous supposerons aussi que toutes les distributions suivent une loi normale.
 
 	\begin{tableth}
 	\begin{tabular}{|c|c|cccc|}
@@ -506,10 +506,10 @@
 		PETS2006 & $1.08 \times 10^{-2}$ & $4.7$ & $10.5$ & $18.6$ & $41.9$\\
 		\hline
 	\end{tabular}
-	\caption[Estimations statistiques du nombre de graines requises]{Nombre d'exécutions avec graines aléatoires différentes requises pour que la moyenne des F-mesure l'échantillon soit au moins d'une distance $\delta$ de la vraie moyenne, avec une probabilité de 95\% pour 2$\sigma$ et 99,7\% pour 3$\sigma$. L'écart type à partir duquel on déduit ces valeurs, a été calculé sur un échantillon de 100 exécutions pour \textit{highway}, et 50 échantillons pour les autres.} \label{tab:nb_seed_stats}
+	\caption[Estimations statistiques du nombre de graines requises]{Nombre d'exécutions avec graines aléatoires différentes requises pour que la moyenne des F-mesure de l'échantillon soit au moins d'une distance $\delta$ de la vraie moyenne, avec une probabilité de 95\% pour 2$\sigma$ et 99,7\% pour 3$\sigma$. L'écart type à partir duquel on déduit ces valeurs, a été calculé sur un échantillon de 100 exécutions pour \textit{highway}, et 50 échantillons pour les autres.} \label{tab:nb_seed_stats}
 	\end{tableth}
 
-	D'après le tableau \ref{tab:nb_seed_stats}, nous pouvons observer que l'écart type est très variable en fonction de la vidéo que l'on traite. Chaque éxécution pouvant durer plusieurs minutes, il est aussi difficilement concevable de faire nos optimisations en visant un résultat à $\delta = 0.5$ / $3\sigma$, car cela nécessiterais dans certains cas presque 100 exécutions pour chaque ensemble de paramètres. Nous avons ainsi choisi de se limiter à 8 exécutions avec des graines aléatoires différentes, car les ordinateurs sur lesquels nous expérimentons possèdent 8 cœurs, et que cela nous permet de dépasser le premier seuil de $\delta=1\%$ /$2\sigma$ pour la plupart des vidéos.
+	D'après le tableau \ref{tab:nb_seed_stats}, nous pouvons observer que l'écart type est très variable en fonction de la vidéo que l'on traite. Chaque éxécution pouvant durer plusieurs minutes, il est aussi difficilement concevable de faire nos optimisations en visant un résultat à $\delta = 0.5$ / $3\sigma$, car cela nécessiterais dans certains cas presque 100 exécutions pour chaque ensemble de paramètres. Nous avons ainsi choisi de nous limiter à 8 exécutions avec des graines aléatoires différentes, car les ordinateurs sur lesquels nous expérimentons possèdent 8 cœurs, et que cela nous permet de dépasser le premier seuil de $\delta=1\%$ /$2\sigma$ pour la plupart des vidéos.
 
 	\subsubsection{Optimisation d'$\alpha$ et de $\sigma$}
 
@@ -545,11 +545,11 @@
 
 	\subsubsection{Durée de l'apprentissage}
 
-	Le dernier paramètre des SOM qu'il reste à optimiser est le nombre d'époques. Une époque étant un parcours complet de la base d'apprentissage, ce paramètre doit être juste assez élevé pour que la SOM converge vers un résultat et assez bas pour que l'apprentissage ne soit pas trop long. La durée de celui-ci étant directement proportionnel au nombre d'époques. Le résultat de nos tests est montré figure \ref{fig:params:nbepochs}. Nous avons choisi 120 époques d'apprentissage pour les SOM.
+	Le dernier paramètre des SOM qu'il reste à optimiser est le nombre d'époques. Une époque étant un parcours complet de la base d'apprentissage, ce paramètre doit être juste assez élevé pour que la SOM converge vers un résultat et assez bas pour que l'apprentissage ne soit pas trop long, la durée de celui-ci étant directement proportionnelle au nombre d'époques. Le résultat de nos tests est montré figure \ref{fig:params:nbepochs}. Nous avons choisi 120 époques d'apprentissage pour les SOM.
 
 	\begin{figureth}
 		\includegraphics[width=\linewidth]{parameters/number_epochs}
-		\caption[Nombre d'époques]{F-mesure en fonction du nombre d'époques sur la \textit{baseline}. Une chose étrange que l'on peut remarquer est une des séquences (PETS2006) a des performances décroissantes avec l'apprentissage. Cela pourrait s'expliquer par un seuil trop haut pour cette séquence, car plus l'apprentissage avance, plus les erreurs sont petites. De plus petites erreurs auront plus de chances d'être en dessous du seuil de décision, et ainsi diminuer le rappel, qui diminue ensuite aussi la F-mesure. Nous avons utilisé la moyenne des séquences croissantes uniquement pour déterminer le moment de convergence de l'apprentissage. Après environ 100 époques, les performances semblent stables et restent dans un intervalle restreint de f-mesure. Nous avons donc choisi 120 époques d'apprentissage pour que la convergence se fasse sans trop coûter en calculs.}\label{fig:params:nbepochs}
+		\caption[Nombre d'époques]{F-mesure en fonction du nombre d'époques sur la \textit{baseline}. Une chose étrange que l'on peut remarquer est qu'une des séquences (PETS2006) a des performances décroissantes avec l'apprentissage. Cela pourrait s'expliquer par un seuil trop haut pour cette séquence, car plus l'apprentissage avance, plus les erreurs sont petites. De plus petites erreurs auront plus de chances d'être en dessous du seuil de décision, et ainsi diminuer le rappel, qui diminue ensuite aussi la F-mesure. Nous avons utilisé la moyenne des séquences croissantes uniquement pour déterminer le moment de convergence de l'apprentissage. Après environ 100 époques, les performances semblent stables et restent dans un intervalle restreint de f-mesure. Nous avons donc choisi 120 époques d'apprentissage pour que la convergence se fasse sans trop coûter en calculs.}\label{fig:params:nbepochs}
 	\end{figureth}
 
 	\subsubsection{Paramètres des GNG}
@@ -599,9 +599,19 @@
 		\caption[Seuil de décision]{La figure de gauche indique le seuil optimal pour chaque couple de taille de SOM et de taille d'imagettes que l'on a testé. On peut remarquer que le seuil optimal diminue plus la taille de la carte est grande, car il y a moins d'erreurs, et qu'il augmente avec la taille des imagettes, car cela amène plus de bruit.\\
 
 		La figure de droite montre la f-mesure complète (sur l'ensemble de CDnet) pour ce seuil optimal. Le maximum est obtenu pour $25\times25$ neurones, $20\times20$ pixels et un seuil de $7$.}\label{fig:res:seuil}
+
+	\end{figureth}
+		\begin{figureth}
+		\begin{subfigureth}{.48\textwidth}
+			\includegraphics[width=\linewidth]{parameters/seuil_pedestrians}\caption{Pedestrians}
+		\end{subfigureth}
+		\begin{subfigureth}{.48\textwidth}
+			\includegraphics[width=\linewidth]{parameters/seuil_pets2006}\caption{PETS2006}
+		\end{subfigureth}
+		\caption[Seuil de décision en fonction de la séquence]{Les deux figures présentent les seuils optimaux pour deux séquences différentes, qui montrent la forte variabilité de ce paramètre.}\label{fig:res:seuil_seq}
 	\end{figureth}
 
-	Le seuil de décision est ce qui permet de passer de notre carte de saillance qui contient des valeurs entre 0 et 255 à la carte de détection binaire. Toutes les valeurs en dessous ou égales au seuil seront considérées comme fond, et les valeurs au dessus du seuil comme nouveauté. La figure \ref{fig:res:seuil} présente nos résultats pour le seuil.
+	Le seuil de décision est ce qui permet de passer de notre carte de saillance qui contient des valeurs entre 0 et 255 à la carte de détection binaire. Toutes les valeurs en dessous ou égales au seuil seront considérées comme fond, et les valeurs au dessus du seuil comme nouveauté. La figure \ref{fig:res:seuil} présente nos résultats pour le seuil global, et la figure \ref{fig:res:seuil_seq} montre que l'optimal est très variable en fonction de la séquence choisie.
 
 	\subsection{Nombre de neurones et taille des imagettes}
 
@@ -643,7 +653,7 @@
 		\caption[Nombre de neurones et de taille des imagettes, GNG/baseline]{F-mesure en fonction du nombre de neurones et de la taille des imagettes pour les séquences de la \textit{baseline} avec un GNG. Les GNG n'ayant pas une topologie carrée comme les SOM, il suffit de mettre au carré la taille de la carte pour obtenir le nombre de neurones utilisés par le GNG.}\label{fig:res:F-mesure3D-baselineGNG}
 	\end{figureth}
 
-	Les résultats pour les GNG de la figure \ref{fig:res:F-mesure3D-baselineGNG} montrent un comportement beaucoup plus chaotique. Les variations sont particulièrement grandes entre plusieurs exécutions, mais on peut tout de même discerner les mêmes préférences de tailles d'imagettes que pour les SOM. \textit{Pedestrians} préfère encore des imagettes petites, et \textit{PETS2006} des imagettes grandes. Cela semble indiquer que ces préférences ne sont pas dépendantes des modèles (SOM, GNG) mais bien seulement de la vidéo ou de la nouveauté présente dans la vidéo.
+	Les résultats pour les GNG de la figure \ref{fig:res:F-mesure3D-baselineGNG} montrent un comportement plus chaotique. Les variations sont particulièrement grandes entre plusieurs exécutions, mais on peut tout de même discerner les mêmes préférences de tailles d'imagettes que pour les SOM. \textit{Pedestrians} préfère encore des imagettes petites, et \textit{PETS2006} des imagettes grandes. Cela semble indiquer que ces préférences ne sont pas dépendantes des modèles (SOM, GNG) mais bien seulement de la vidéo ou de la nouveauté présente dans la vidéo.
 
 	\begin{figureth}
 		\begin{subfigureth}{.45\textwidth}
@@ -675,7 +685,7 @@
 		\caption[Nombre de neurones et de taille des imagettes, Global]{Moyenne des F-mesure en fonction du nombre de neurones et de la taille des imagettes pour l'ensemble des vidéos de notre jeu de données.}\label{fig:res:F-mesure3D-global}
 	\end{figureth}
 
-	Lorsque sont agrégés toutes les séquences vidéos, les graphes de la figure \ref{fig:res:F-mesure3D-global} montrent les tendances globales sur notre modèle. La détection de nouveauté avec la SOM fonctionne le mieux avec des tailles d'imagettes proches de $20\times20$. Augmenter le nombre de neurones est quant à lui toujours bénéfique, mais amène des gains toujours plus réduits. Les résultats pour les GNG sont plus étranges, car ils sont à leur maximum pour des valeurs intermédiaires de neurones et d'imagettes, plus petites que celles de la SOM. Ce peut être cependant qu'un résultat de la forte variabilité observée dans les vidéos individuelles qui se répercute dans la moyenne globale.
+	Lorsque sont agrégés toutes les séquences vidéos, les graphes de la figure \ref{fig:res:F-mesure3D-global} montrent les tendances globales sur notre modèle. La détection de nouveauté avec la SOM fonctionne le mieux avec des tailles d'imagettes proches de $20\times20$. Augmenter le nombre de neurones est quant à lui toujours bénéfique, mais amène des gains toujours plus réduits. Les résultats pour les GNG sont plus étranges, car ils sont à leur maximum pour des valeurs intermédiaires de neurones et d'imagettes, plus petites que celles de la SOM. Ce peut être cependant seulement un résultat de la forte variabilité observée dans les vidéos individuelles qui se répercute dans la moyenne globale.
 
 	\subsection{Résultats complets}\label{sec:res:stats}
 
@@ -884,7 +894,7 @@
 		\caption[Visualisation résultats dynamiques]{Résultats sur des séquences avec un fond dynamique. Les changements trop importants du fond sont constamment considérés en nouveauté et ainsi réduisent drastiquement la précision.}\label{fig:res:visu-dynamic}
 	\end{figureth}
 
-	La figure \ref{fig:res:visu-normalisation} présente un des défauts de normaliser la carte de saillance, comme expliqué dans la section \ref{seq:combinaison}.
+	La figure \ref{fig:res:visu-normalisation} présente un des défauts de normaliser la carte de saillance, ce qui se traduit par un fort taux de bruit en l'absence de nouveauté, comme expliqué dans la section \ref{seq:combinaison}.
 
 	\begin{figureth}
 		\begin{subfigureth}{.32\textwidth}

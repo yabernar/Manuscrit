@@ -23,7 +23,7 @@
 %           Fichier maitre				%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\documentclass[a4paper, 12pt, twoside,openright]{report}
+\documentclass[a4paper, 12pt, twoside, openany]{report}
 \input{Preambule}		% Liste des packages et de leurs options
 \input{CommandesPerso}	% Commandes et environnements perso
 \input{PageDeGarde}
@@ -64,8 +64,8 @@
 % Préambule
 	\pagenumbering{roman}
 	\pagedegarde
-
-	\cleardoublepage
+	\includefrom{}{Introduction}
+	%\cleardoublepage
 		% Table des matières
 			\setcounter{tocdepth}{1}	% Pas besoin de trop détailler le sommaire ici (chapitres/sections)
 			\dominitoc						% Génération des mini-toc	\pagenumbering{arabic}
@@ -81,10 +81,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	\setcounter{mtc}{3}	% "Corrige" les minitocs décallés à cause des chapter* (ex : table des matières)
 	\pagenumbering{arabic}
-	%\includefrom{Chapitre1/}{Chapitre1}	
-	%\includefrom{Chapitre2/}{Chapitre2} 		
-	\includefrom{Chapitre3/}{Chapitre3}
-	%\includefrom{Chapitre4/}{Chapitre4} 			 			
+	\includefrom{Chapitre1/}{Chapitre1}	\cleardoublepage
+	\includefrom{Chapitre2/}{Chapitre2}	\cleardoublepage
+	\includefrom{Chapitre3/}{Chapitre3} \cleardoublepage
+	\includefrom{Chapitre4/}{Chapitre4} \cleardoublepage
+	\includefrom{}{Conclusion}
 	
 	% Annexes
 	\begin{appendix}
@@ -92,9 +93,9 @@
 		%\includefrom{Annexes/}{Annexes}				% Figures en annexe
 			
 		% Liste des acronymes, glossaire et liste des symboles (dans l'ordre)		
-		\printglossary[type=\acronymtype , title={Liste des acronymes}, toctitle={Liste des acronymes}]
-		\printglossary[title=Glossaire,toctitle=Glossaire]
-		\printglossary[type=notation,title={Liste des symboles}, toctitle={Liste des symboles}]
+		%\printglossary[type=\acronymtype , title={Liste des acronymes}, toctitle={Liste des acronymes}]
+		%\printglossary[title=Glossaire,toctitle=Glossaire]
+		%\printglossary[type=notation,title={Liste des symboles}, toctitle={Liste des symboles}]
 	
 	\end{appendix}
 
