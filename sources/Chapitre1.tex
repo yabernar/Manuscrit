@@ -75,10 +75,8 @@
 
 	\begin{figureth}
 		\includegraphics[width=.4\linewidth]{fourier}
-		\caption[Illustration de l'efficacité du traitement visuel humain.]{Illustration des capacités du traitement visuel humain, à l'aise pour reconnaître des signatures, même simplifiées, de son environnement visuel habituel mais incapable de reconnaître un chat représenté dans un espace, ici de fourrier, auquel il n'est pas habitué. Si le spectre affiché était effectivement la transformée de Fourier d'un chat.\footnotemark}\label{fig:vis:fourier}
+		\caption[Illustration de l'efficacité du traitement visuel humain.]{Illustration des capacités du traitement visuel humain. Il est à l'aise pour reconnaître des signatures, même simplifiées, de son environnement visuel habituel mais incapable de reconnaître un chat représenté dans un espace, ici de fourrier, auquel il n'est pas habitué. Si le spectre affiché était effectivement la transformée de Fourier d'un chat.\footnotemark}\label{fig:vis:fourier}
 	\end{figureth}
-
-	\footnotetext{Source de l'image : http://xkcd.com/26 reproduit sous licence CC-BY-NC}
 
 \subsection{Vision humaine}\label{sec:sota:human_vis}
 
@@ -88,11 +86,13 @@
 
 	Dans les premières couches du cortex visuel (V1, V2, V3 et un peu au delà), les neurones sont organisés en cartes rétinotopiques, c'est à dire en reproduisant l'arrangement spatial de la rétine. Des neurones voisins dans la carte traiterons des zones proches dans le champ visuel. Les DNF sont aussi rétinotopiques (plus de détails dans la section \ref{sec:sota:dnf}). Il y a également une organisation verticale en colonnes de neurones qui partagent des préférences proches comme la position ou l'orientation. C'est un concept qui se rapproche de l'idée qui sous-tend les cartes auto-organisatrices (section \ref{sec:sota:som}). Ainsi l'échange d'information dans le cortex se fait latéralement, verticalement et aussi parfois à longue distance vers une autre zone.
 
+	\footnotetext{Source de l'image : http://xkcd.com/26 reproduit sous licence CC-BY-NC}
+
 	Un autre fait intéressant est que la distribution des neurones qui traitent chaque modalité telle que le contraste, l'orientation ou le mouvement est en proportion équivalente à la distribution de ces modalités dans l'environnement. L'implication est que le système visuel est dépendant de l'environnement. La part de génétique et d'apprentissage dans cette dépendance reste incertaine. Mais elle montre bien qu'une connaissance de l'environnement habituel est utile pour les tâches visuelles.
 
 	Le cortex visuel ne travaille pas de manière isolée du reste du cerveau, et il existe de nombreuses connexions entre celui-ci et des autres aires cérébrales comme le lobe pariétal, qui intègre toutes les informations sensorielles, ou le lobe ventral qui s'occupe de la mémoire et de la reconnaissance d'objets par exemple. Il est estimé qu'environ 10\% de ces connexions entre le système visuel et les autres aires vont dans ce sens, et que les 90\% restants sont dans le sens inverse. Les niveaux supérieurs du cerveau ont donc ainsi une influence importante sur comment les informations visuelles sont traitées à plus bas niveau. La raison de cette disparité est encore inconnue, mais on peut supposer, d'après les observations sur la complexité de la vision évoquées dans la section \ref{sec:sota:vision}, que l'information transmise en sens inverse est à la mesure de la connaissance préalable de l'environnement nécessaire pour compléter l'information partielle de la vision afin de construire une représentation cohérente de l'environnement.
 
-	Un dernier mécanisme essentiel de la vision humaine est l'attention. C'est un mécanisme qui mobilise plusieurs aires cérébrales de différents zones du cerveau. Son intérêt est de concentrer les traitements complexes de la vision à une petite partie seulement du champ visuel. Cela permet d'utiliser moins de ressources pour les traitements complexes, en rendant les stimulus plus simples et en réduisant la surcharge d'informations \cite{evans2011visual}. C'est aussi ce mécanisme qui contrôle en partie les mouvements oculaires pour utiliser efficacement la vision fovéale (une plus grande précision au centre qu'aux bords) des yeux. Nous essayerons de reproduire ce mécanisme avec des DNF dans le chapitre 3. Cependant l'attention humaine utilise une représentation complexe de l'environnement, et d'autres mécanismes cognitifs avancés, et son modèle est toujours un sujet d'études en neurosciences. Nous utiliserons donc une version simplifiée du mécanisme.
+	Un dernier mécanisme essentiel de la vision humaine est l'attention. C'est un mécanisme qui mobilise plusieurs aires cérébrales de différents zones du cerveau. Son intérêt est de concentrer les traitements complexes de la vision à une petite partie seulement du champ visuel. Cela permet d'utiliser moins de ressources pour les traitements complexes, en rendant les stimulus plus simples et en réduisant la surcharge d'informations \cite{evans2011visual}. C'est aussi ce mécanisme qui contrôle en partie les mouvements oculaires pour utiliser efficacement la vision fovéale (une plus grande précision au centre qu'aux bords) des yeux. Nous essayerons de reproduire ce mécanisme avec des DNF dans le chapitre 4. Cependant l'attention humaine utilise une représentation complexe de l'environnement, et d'autres mécanismes cognitifs avancés, et son modèle est toujours un sujet d'études en neurosciences. Nous utiliserons donc une version simplifiée du mécanisme.
 
 \subsection{Détection de nouveauté}\label{sec:sota:computer_vis}
 
@@ -108,7 +108,7 @@
 
 	Il est aussi intéressant de noter que les cartes auto-organisatrices ont déjà été employées pour faire de la détection de nouveauté. Le modèle le plus connu est SOBS (Self-Organized Background Substraction) \cite{maddalena2008self}. Il utilise une petite SOM pour chaque pixel pour apprendre les variations de ce pixel particulier au cours du temps et ainsi décider si la variation fait partie du fond ou si c'est de la nouveauté. Ces petites SOM sont toutes reliées dans un ensemble rétinotopique plus grand représentant le fond complet de l'image et permettant un peu de prendre en compte le voisinage de chaque pixel pour la décision. D'autres versions on été développées plus tard pour améliorer les performances et la robustesse de SOBS \cite{gemignani2016robust}.
 
-	Comme la plupart des approches de détection de nouveauté, nous essayerons d'apprendre un modèle du fond à l'initialisation et de faire la détection de nouveauté en comparant le modèle de fond et l'image courante reçue par la caméra. Nous allons donc apprendre une image avec notre SOM, et utiliser ce que la SOM a appris pour trouver les nouveautés. Nous souhaitons explorer une approche différente de celle de \textit{SOBS}, en ne travaillant pas au niveau des pixels individuels, mais de groupes de pixels. L'idée est de pouvoir intégrer plus d'informations de voisinage dans nos vecteurs d'entrée pour pouvoir effectuer un traitement de plus haut niveau avec les SOM. Nous présenterons ce concept dans le chapitre 2, consacré à la détection de nouveauté. Le chapitre 3 y adjoindra un mécanisme attentionnel avec des DNF. Le chapitre 4 évoquera une amélioration de l'algorithme de la SOM pour en réduire le coût en calculs, car c'est particulièrement important pour une implantation matérielle dans un système embarqué.
+	Comme la plupart des approches de détection de nouveauté, nous essayerons d'apprendre un modèle du fond à l'initialisation et de faire la détection de nouveauté en comparant le modèle de fond et l'image courante reçue par la caméra. Nous allons donc apprendre une image avec notre SOM, et utiliser ce que la SOM a appris pour trouver les nouveautés. Nous souhaitons explorer une approche différente de celle de \textit{SOBS}, en ne travaillant pas au niveau des pixels individuels, mais de groupes de pixels. L'idée est de pouvoir intégrer plus d'informations de voisinage dans nos vecteurs d'entrée pour pouvoir effectuer un traitement de plus haut niveau avec les SOM. Nous présenterons ce concept dans le chapitre 2, consacré à la détection de nouveauté. Le chapitre 3 évoquera une amélioration de l'algorithme de la SOM pour en réduire le coût en calculs, car c'est particulièrement important pour une implantation matérielle dans un système embarqué. Le chapitre 4 adjoindra un mécanisme attentionnel avec des DNF à notre détection de nouveauté. 
 
 \newpage
 \section{Réseaux neuronaux}
@@ -233,11 +233,11 @@ Nous présenterons dans cette partie l'histoire et le fonctionnement des modèle
 		\caption[Apprentissage de GNG]{Apprentissage d'un GNG de gauche à droite. Les neurones en rouge dans chaque croissant de lune sont connectés entre eux, mais il n'y a pas de connexions entre les neurones des deux croissants de lunes. La topologie du GNG représente la topologie présente dans les données.\footnotemark}\label{fig:gng}
 	\end{figureth}
 
+	\footnotetext{Images provenant de https://github.com/AdrienGuille/GrowingNeuralGas, licence MIT}
+
 	L'apprentissage s'arrête au bout d'un certain nombre prédéfini d'époques, comme pour la SOM. L'effet de chaque paramètre peut être compris aisément par le contexte dans lequel il est utilisé, ainsi nous n'irons pas dans le détail de chacun d'entre eux. Le paramètre $\lambda$, ajustant la vitesse de création de nouveaux neurones, sera fixé de telle sorte qu'à la fin de l'apprentissage il y ait le même nombre de neurones dans le GNG que dans la SOM à laquelle on souhaite se comparer. La reconstruction se passe de la même façon que pour la SOM. Les valeurs que l'on aura utilisées pour nos paramètres seront précisées dans la section expérimentale correspondante.
 
 	\subsection{DNF}\label{sec:sota:dnf}
-
-	\footnotetext{Images provenant de https://github.com/AdrienGuille/GrowingNeuralGas, licence MIT}
 
 	Les champs neuronaux dynamiques (DNF), introduits par \cite{amari1977dynamics} représentent mathématiquement l'évolution d'une population de neurones. Une dynamique << On center, Off surround >> a été ajoutée par \cite{ellias1975pattern}, qui ont employé des neurones inhibiteurs et excitateurs dans la forme typique de "chapeau mexicain" d'activations (un centre excitateur, un intermédiaire inhibiteur et des bords avec peu d'effet).
 	
@@ -281,7 +281,7 @@ Nous présenterons dans cette partie l'histoire et le fonctionnement des modèle
 
 	$\Delta t$ est le pas de temps entre deux estimations, il peut être le même pour tous les neurones (synchrone) ou différent à chaque fois (asynchrone).
 
-	Il est souvent ardu de comprendre le comportement d'un DNF à partir de sa formule mathématique uniquement, ainsi nous préciserons les paramètres et le comportement que nous avons choisis pour chaque DNF utilisé dans le Chapitre 3.
+	Il est souvent ardu de comprendre le comportement d'un DNF à partir de sa formule mathématique uniquement, ainsi nous préciserons les paramètres et le comportement que nous avons choisis pour chaque DNF utilisé dans le Chapitre 4.
 
 \bibliographystyle{francaissc}
 \bibliography{Chapitre1/Biblio}

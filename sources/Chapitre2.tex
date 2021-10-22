@@ -92,10 +92,10 @@
 		\caption[Représentation d'une image]{Comparaison entre une image avec des couleurs fusionnées et la même image avec des couleurs séparées qui présente des artefacts visuels.\footnotemark}\label{fig:img:rep}
 	\end{figureth}
 
-	\footnotetext{Image source: https://unsplash.com/photos/9A\_peGrSbZc}
-
 	\newpage
 	\section{Détection de nouveauté par QVAT : quantification vectorielle et apprentissage topologique}
+
+	\footnotetext{Image source: https://unsplash.com/photos/9A\_peGrSbZc}
 
 	Nous avons à partir des différentes propriétés de nos modèles neuronaux et de l'apprentissage d'images, développé des processus de détection de nouveauté. Ces processus ne sont pas intrinsèques à nos modèles, c'est à dire que nos modèles neuronaux n'ont pas été définis dans le but d'effectuer une détection de nouveauté. Elle est une propriété émergente de ces modèles. Nous présentons ces deux méthodes dans cette section. La première est basée sur la propriété de quantification vectorielle et la seconde sur la topologie des SOM, avec une modulation par ce que nous appelons la distance neurale. La première a été introduite dans \cite{bernard2019novelty}, et complémentée par la seconde dans \cite{bernard2020novelty}.
 
@@ -179,7 +179,7 @@
 	
 	Une fois les deux cartes de saillance générées, il est nécessaire de les combiner pour n'avoir qu'un seul résultat qui représentera la sortie de notre système. Il existe un très grand nombre de façons de faire cette combinaison, et il existe dans la littérature des modèles qui se basent sur une bonne combinaison de différentes cartes de saillance pour obtenir de meilleurs résultats \cite{bianco2017combination}. Dans notre cas, nous avons préféré utiliser une combinaison simple de nos deux cartes de saillance. C'est à dire qu'elle n'utilise pas de paramètres, pour ne pas ajouter une variable de plus à optimiser. Nous souhaitons aussi bénéficier de la complémentarité des deux cartes de saillance. La solution la plus simple est de multiplier les deux cartes ensemble. Ainsi, sera considéré comme nouveauté dans la carte de sortie, ce qui apparaît comme nouveauté en même temps dans les deux cartes de saillance, sur le principe de $\textit{petit} \times \textit{petit} = \textit{petit}$, $\textit{grand} \times \textit{petit} = \textit{petit}$ et seulement $\textit{grand} \times \textit{grand} = \textit{grand}$, à l'instar d'un "et" logique. Le bruit présent dans la carte résultant de la quantification vectorielle et qui n'est pas présent dans la carte topologique disparaît de la carte finale. Il en va de même pour les mouvements qui ne sont pas des nouveautés qui apparaissent dans la carte topologique, mais pas dans la carte de quantification vectorielle.
 
-	Un problème qui peut apparaître avec cette méthode est la trop petite valeur du résultat et le déséquilibre d'impact de nos deux cartes, car nos cartes de saillance sont toutes les deux définies entre 0 et 1. Il est possible qu'il existe des situations où les deux cartes ont un impact disproportionnel sur le résultat. Par exemple si la saillance a une valeur de 0.2 sur une carte et 0.8 sur l'autre, alors la seconde aura plus d'impact sur les valeurs de la sortie finale. De même, en multipliant deux nombres compris entre 0 et 1, le résultat sera forcément inférieur à chacun des deux nombres. Cela a un effet réducteur sur toutes les valeurs de la carte de saillance finale. La solution que nous avons choisi à ces deux problèmes, est de re-normaliser les deux cartes de saillances avant de les multiplier. C'est à dire que l'on rééchelonne l'ensemble de la carte en mettant la valeur maximum de la carte à 1 et le minimum à 0 et d'étaler les valeurs intermédiaires entre les deux pour conserver le même espacement relatif entre elles. Cela a pour effet d'éviter une trop grande disproportion d'impact entre les deux cartes sans résoudre complètement le problème cependant. Car on re-normalise avec le maximum, et non avec la possible valeur de la nouveauté détectée. 
+	Un problème qui peut apparaître avec cette méthode est la trop petite valeur du résultat et le déséquilibre d'impact de nos deux cartes, car nos cartes de saillance sont toutes les deux définies entre 0 et 1. Il est possible qu'il existe des situations où les deux cartes ont un impact disproportionnel sur le résultat. Par exemple si la saillance a une valeur de 0.2 sur une carte et 0.8 sur l'autre, alors la seconde aura plus d'impact sur les valeurs de la sortie finale. De même, en multipliant deux nombres compris entre 0 et 1, le résultat sera forcément inférieur à chacun des deux nombres. Cela a un effet réducteur sur toutes les valeurs de la carte de saillance finale. La solution que nous avons choisi à ces deux problèmes, est de re-normaliser les deux cartes de saillances avant de les multiplier. Cela a pour effet d'éviter une trop grande disproportion d'impact entre les deux cartes.
 	
 	Cependant, cela vient aussi avec des désavantages, comme par exemple le fait que si il n'y a pas de signal dans l'entrée, le maximum des cartes de saillance sera quand même 1. On pourrait observer des signaux positifs dans la sortie alors que l'entrée et les cartes de saillances n'en montrent pas. En pratique, cela est peu fréquent car la valeur maximum dans un cas où il n'y a pas de signal en entrée vient du bruit de reconstruction, et est donc décorrélée entre les deux cartes car la distance neurale n'y est pas sujette, et disparaîtra lors de la multiplication.
 
@@ -555,6 +555,19 @@
 		\caption[Nombre d'époques]{F-mesure en fonction du nombre d'époques sur la \textit{baseline}. Une chose étrange que l'on peut remarquer est qu'une des séquences (PETS2006) a des performances décroissantes avec l'apprentissage. Cela pourrait s'expliquer par un seuil trop haut pour cette séquence, car plus l'apprentissage avance, plus les erreurs sont petites. De plus petites erreurs auront plus de chances d'être en dessous du seuil de décision, et ainsi diminuer le rappel, qui diminue ensuite aussi la F-mesure. Nous avons utilisé la moyenne des séquences croissantes uniquement pour déterminer le moment de convergence de l'apprentissage. Après environ 100 époques, les performances semblent stables et restent dans un intervalle restreint de f-mesure. Nous avons donc choisi 120 époques d'apprentissage pour que la convergence soit atteinte sans trop coûter en calculs.}\label{fig:params:nbepochs}
 	\end{figureth}
 
+	\subsubsection{Récapitulatif}\label{sec:param:recap}
+
+	\begin{tableth}
+	\caption[Récapitulatif des paramètres SOM]{Récapitulatif des paramètres SOM}
+	\begin{tabular}{|cc|cc|c|c|c|}
+		\hline
+		$\alpha$-start	& $\alpha$-end & $\sigma$-start & $\sigma$-end & Époques & Images par séquence\\
+		\hline
+		0.2 & 0.05 & 0.7 & 0.015 & 120 & 105\\
+		\hline
+	\end{tabular}\label{tab:recap:param}
+	\end{tableth}
+	
 	\subsubsection{Paramètres des GNG}
 
 	Nous avons choisi d'utiliser des GNG pour montrer que notre méthode est généralisable à d'autres modèles avec quantification vectorielle et topologie. Ainsi, nous nous sommes contentés pour la paramétrisation d'utiliser de nouveau un \textit{Tree-structured Parzen Estimator} pour optimiser l'intégralité des paramètres en une fois. Leurs valeurs sont présentées dans le tableau \ref{tab:gng:param}.
@@ -570,18 +583,6 @@
 	\end{tabular}\label{tab:gng:param}
 	\end{tableth}
 
-	\subsubsection{Récapitulatif}\label{sec:param:recap}
-
-	\begin{tableth}
-	\caption[Récapitulatif des paramètres SOM]{Récapitulatif des paramètres SOM}
-	\begin{tabular}{|cc|cc|c|c|c|}
-		\hline
-		$\alpha$-start	& $\alpha$-end & $\sigma$-start & $\sigma$-end & Époques & Images par séquence\\
-		\hline
-		0.2 & 0.05 & 0.7 & 0.015 & 120 & 105\\
-		\hline
-	\end{tabular}\label{tab:recap:param}
-	\end{tableth}
 
 
 	\newpage
